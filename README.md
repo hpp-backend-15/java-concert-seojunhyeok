@@ -7,4 +7,5 @@
 
 ## Step 6
 [ERD](https://github.com/hpp-backend-15/java-concert-seojunhyeok/blob/step6/docs/markdown/ERD.md)<br>
-[API 명세](https://github.com/hpp-backend-15/java-concert-seojunhyeok/blob/step6/docs/markdown/API%20Spec.md)
+[API 명세](https://github.com/hpp-backend-15/java-concert-seojunhyeok/blob/step6/docs/markdown/API%20Spec.md)<br>
+[패키지 구조 및 기술스택](https://github.com/hpp-backend-15/java-concert-seojunhyeok/blob/step6/docs/markdown/server%20configuration.md)

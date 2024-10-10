@@ -1,0 +1,289 @@
+openapi: 3.0.0
+info:
+  title: Concert Booking API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /tokens:
+    post:
+      summary: 토큰 발급
+      description: 사용자에게 새로운 토큰을 발급합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: 사용자 ID
+      responses:
+        '200':
+          description: 토큰 발급 완료
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                        description: 사용자 ID
+                      uuid:
+                        type: string
+                        description: 발급된 토큰의 UUID
+                      queue_position:
+                        type: integer
+                        description: 대기열 순번
+        '404':
+          description: 사용자 미존재
+
+  /queue/position/:
+    get:
+      summary: 대기열 순번 조회
+      description: 사용자의 대기열 순번을 조회합니다.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            description: Bearer {token} 형식의 인증된 토큰 값 (단순 문자열)
+      responses:
+        '200':
+          description: 대기 순번 반환
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  position:
+                    type: integer
+                    description: 대기 순번
+        '401':
+          description: 잘못된 토큰
+        '404':
+          description: 잘못된 요청
+
+  /concerts/{concertId}/schedules/available:
+    get:
+      summary: 예약 가능한 날짜 조회
+      description: 콘서트의 예약 가능한 날짜 목록을 반환합니다.
+      parameters:
+        - name: concertId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: 콘서트 ID
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            description: Bearer {token} 형식의 인증된 토큰 값 (단순 문자열)
+      responses:
+        '200':
+          description: 예약 가능한 날짜 목록 반환
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  description: 예약 가능한 날짜
+        '401':
+          description: 잘못된 토큰
+        '404':
+          description: 예약 가능한 날짜 없음
+
+  /concert/{concertId}/schedules/{scheduleId}/seats/available:
+    get:
+      summary: 특정 날짜 예약 가능한 좌석 조회
+      description: 예약 가능한 좌석 목록을 반환합니다.
+      parameters:
+        - name: concertId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: 콘서트 ID
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: 콘서트 일정 ID
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            description: Bearer {token} 형식의 인증된 토큰 값 (단순 문자열)
+      responses:
+        '200':
+          description: 예약 가능한 좌석 목록 반환
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    seatId:
+                      type: string
+                      description: 좌석 ID
+                    seatNumber:
+                      type: integer
+                      description: 좌석 번호
+        '401':
+          description: 잘못된 토큰
+        '404':
+          description: 예약 가능한 좌석 없음
+
+  /reservations:
+    post:
+      summary: 좌석 예약 요청
+      description: 사용자가 선택한 좌석을 예약합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scheduleId:
+                  type: string
+                  description: 콘서트 일정 ID
+                seatId:
+                  type: string
+                  description: 좌석 ID
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            description: Bearer {token} 형식의 인증된 토큰 값 (단순 문자열)
+      responses:
+        '201':
+          description: 예약 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reservationId:
+                    type: string
+                    description: 예약된 좌석의 예약 ID
+        '400':
+          description: 잘못된 요청
+        '401':
+          description: 잘못된 토큰
+        '409':
+          description: 이미 예약된 좌석
+
+  /payments:
+    post:
+      summary: 결제 요청
+      description: 예약된 좌석에 대한 결제를 처리합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reservationId:
+                  type: string
+                  description: 예약 ID
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            description: Bearer {token} 형식의 인증된 토큰 값 (단순 문자열)
+      responses:
+        '200':
+          description: 결제 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  paymentId:
+                    type: string
+                    description: 결제 ID
+        '400':
+          description: 잘못된 요청
+        '401':
+          description: 잘못된 토큰
+        '402':
+          description: 잔액 부족
+
+  /credits/charge:
+    post:
+      summary: 잔액 충전
+      description: 사용자의 잔액을 충전합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: 사용자 ID
+                amount:
+                  type: number
+                  description: 충전 금액
+      responses:
+        '200':
+          description: 잔액 충전 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    description: 충전 후 잔액
+        '404':
+          description: 사용자 미존재
+
+  /credits/balance/{userId}:
+    get:
+      summary: 잔액 조회
+      description: 사용자의 잔액을 조회합니다.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: 사용자 ID
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            description: Bearer {token} 형식의 인증된 토큰 값 (단순 문자열)
+      responses:
+        '200':
+          description: 잔액 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    description: 사용자의 잔액
+        '404':
+          description: 사용자 미존재

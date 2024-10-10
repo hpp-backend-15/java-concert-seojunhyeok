@@ -1,4 +1,5 @@
 # API Spec
+> [OAS](https://github.com/hpp-backend-15/java-concert-seojunhyeok/blob/step6/docs/markdown/OAS.yml)
 ## SWAGGER
 ### 토큰 발급 API
 ![img.png](img.png)

@@ -5,5 +5,5 @@
 [Sequence Diagram](https://github.com/hpp-backend-15/java-concert-seojunhyeok/blob/step5/docs/markdown/sequenceDiagram.md)
 ---
 ## Step 6
-[ERD]()<br>
-[API 명세]()
+[ERD](https://github.com/hpp-backend-15/java-concert-seojunhyeok/blob/step6/docs/markdown/ERD.md)<br>
+[API 명세](https://github.com/hpp-backend-15/java-concert-seojunhyeok/blob/step6/docs/markdown/API%20Spec.md)

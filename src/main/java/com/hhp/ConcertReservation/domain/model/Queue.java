@@ -1,5 +1,6 @@
 package com.hhp.ConcertReservation.domain.model;
 
+import com.hhp.ConcertReservation.common.enums.QueueStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @Data
 public class Queue {
 	public static final int QUEUE_TOKEN_EXPIRY_TIME = 5;
+	public static final int MAX_ALLOWED_QUEUE_PASS = 20;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +30,8 @@ public class Queue {
 	@Column(name = "expiry_at", nullable = false)
 	private LocalDateTime expiryAt;
 
-	public static LocalDateTime getQueueTokenExpiryTime(LocalDateTime now) {
-		return now.plusMinutes(QUEUE_TOKEN_EXPIRY_TIME);
+	public void expireToken() {
+		this.setStatus(QueueStatus.EXPIRED.toString());
+		this.setExpiryAt(LocalDateTime.now());
 	}
 }

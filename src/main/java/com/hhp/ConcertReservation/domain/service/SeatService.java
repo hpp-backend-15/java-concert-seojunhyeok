@@ -13,6 +13,10 @@ import java.util.List;
 public class SeatService {
 	final SeatJpaRepository seatJpaRepository;
 
+	public Seat save(Seat seat) {
+		return seatJpaRepository.save(seat);
+	}
+
 	public Seat findSeatById(Long seatId) {
 		return seatJpaRepository.findById(seatId)
 				       .orElseThrow(() -> new IllegalArgumentException("좌석 정보를 찾을 수 없습니다."));

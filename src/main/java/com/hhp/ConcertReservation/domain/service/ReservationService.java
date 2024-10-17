@@ -16,6 +16,10 @@ import java.util.List;
 public class ReservationService {
 	private final ReservationJpaRepository reservationJpaRepository;
 
+	public Reservation save(Reservation reservation) {
+		return reservationJpaRepository.save(reservation);
+	}
+
 	public Reservation findById(Long reservationId) {
 		return reservationJpaRepository
 				       .findById(reservationId)

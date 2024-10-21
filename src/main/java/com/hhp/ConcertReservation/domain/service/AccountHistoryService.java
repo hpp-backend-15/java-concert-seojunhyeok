@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,5 +24,13 @@ public class AccountHistoryService {
 		accountHistoryJpaRepository.save(accountHistory);
 
 		return accountHistory;
+	}
+
+	public AccountHistory getHistory(Long accountId, Long historyId) {
+		return accountHistoryJpaRepository.findById(historyId).orElse(null);
+	}
+
+	public List<AccountHistory> findAllByAccountId(Long accountId) {
+		return accountHistoryJpaRepository.findByAccountId(accountId);
 	}
 }

@@ -25,4 +25,8 @@ public class AccountService {
 	public Account createAccount(Account account) {
 		return accountJpaRepository.save(account);
 	}
+
+	public Account updateAccount(Account account) {
+		return accountJpaRepository.save(account);
+	}
 }

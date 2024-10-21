@@ -25,4 +25,8 @@ public class SeatService {
 	public List<Seat> findAvailableSeats(Long concertScheduleId) {
 		return seatJpaRepository.findByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.AVAILABLE.toString());
 	}
+
+	public Seat updateSeat(Seat seat) {
+		return seatJpaRepository.save(seat);
+	}
 }

@@ -27,7 +27,7 @@ public class Queue {
 	@Column(name = "status", length = 100, nullable = false)
 	private String status;  // WAITING, PASSED, EXPIRED
 
-	@Column(name = "expiry_at", nullable = false)
+	@Column(name = "expiry_at")
 	private LocalDateTime expiryAt;
 
 	public void expireToken() {

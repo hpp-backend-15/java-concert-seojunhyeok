@@ -71,7 +71,7 @@ class PaymentFacadeIntegrationTest {
 		canceledReservation = new Reservation();
 		canceledReservation.setMemberId(2L);
 		canceledReservation.setSeatId(seat.getId());
-		canceledReservation.setStatus(ReservationStatus.CANCELLED.name());
+		canceledReservation.setStatus(ReservationStatus.CANCELED.name());
 		canceledReservation.setExpiryAt(LocalDateTime.now().plusMinutes(5));
 		canceledReservation = reservationService.save(canceledReservation);
 

@@ -45,7 +45,7 @@ public class Reservation {
 	public void validateReservationAvailability() {
 		if (this.status.equals(ReservationStatus.PAID.name())) {
 			throw new IllegalStateException("해당 예약은 이미 결제되었습니다.");
-		} else if (this.status.equals(ReservationStatus.CANCELLED.name())) {
+		} else if (this.status.equals(ReservationStatus.CANCELED.name())) {
 			throw new IllegalStateException("해당 예약은 이미 취소되었습니다.");
 		}
 	}

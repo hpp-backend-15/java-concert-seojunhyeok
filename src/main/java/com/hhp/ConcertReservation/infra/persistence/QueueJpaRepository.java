@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,4 +24,8 @@ public interface QueueJpaRepository extends JpaRepository<Queue, Long> {
 
 	@Query("SELECT q FROM Queue q WHERE q.status = :status ORDER BY q.id ASC")
 	List<Queue> findTopByStatusOrderByIdAsc(@Param("status") String status, Pageable pageable);
+
+	@Query("select q from Queue q WHERE q.status = 'ENTERED' AND q.expiryAt <= :expiryAt")
+	List<Queue> findExpireOverdueQueues(@Param("expiryAt") LocalDateTime expiryAt);
+
 }

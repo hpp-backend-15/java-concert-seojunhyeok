@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,6 +52,15 @@ public class QueueService {
 				                   .countByStatus(QueueStatus.ENTERED.name())
 				                   .orElse(0L);
 		return Queue.MAX_ALLOWED_QUEUE_PASS - (int) passedCount;
+	}
+
+	public void expireOverdueQueues(LocalDateTime dateTime) {
+		List<Queue> expireOverdueQueues = queueJpaRepository.findExpireOverdueQueues(dateTime);
+
+		for (Queue queue : expireOverdueQueues) {
+			queue.setStatus(QueueStatus.EXPIRED.name());
+			queueJpaRepository.save(queue);
+		}
 	}
 
 	public void passQueueEntries(int numberToPass) {

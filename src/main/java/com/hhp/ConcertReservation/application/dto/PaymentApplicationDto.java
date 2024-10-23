@@ -1,6 +1,6 @@
 package com.hhp.ConcertReservation.application.dto;
 
-import com.hhp.ConcertReservation.domain.model.*;
+import com.hhp.ConcertReservation.domain.entity.*;
 
 public class PaymentApplicationDto {
 	public record processReservationPaymentResponse(

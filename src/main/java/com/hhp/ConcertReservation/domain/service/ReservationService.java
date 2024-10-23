@@ -1,9 +1,9 @@
 package com.hhp.ConcertReservation.domain.service;
 
 import com.hhp.ConcertReservation.common.enums.ReservationStatus;
-import com.hhp.ConcertReservation.domain.model.Member;
-import com.hhp.ConcertReservation.domain.model.Reservation;
-import com.hhp.ConcertReservation.domain.model.Seat;
+import com.hhp.ConcertReservation.domain.entity.Member;
+import com.hhp.ConcertReservation.domain.entity.Reservation;
+import com.hhp.ConcertReservation.domain.entity.Seat;
 import com.hhp.ConcertReservation.infra.persistence.ReservationJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,13 +30,13 @@ public class ReservationService {
 		LocalDateTime createAt = LocalDateTime.now();
 		LocalDateTime expiryAt = createAt.plusMinutes(Reservation.SEAT_HOLD_TIME_MINUTES);
 
-		Reservation reservation = new Reservation(member.getId(), seat.getId(), ReservationStatus.PENDING.toString(), expiryAt);
+		Reservation reservation = new Reservation(member.getId(), seat.getId(), ReservationStatus.RESERVED.name(), expiryAt);
 
 		reservationJpaRepository.save(reservation);
 		return reservation;
 	}
 
 	public List<Reservation> findReservationsToExpire(LocalDateTime expiryAt) {
-		return reservationJpaRepository.findByStatusAndExpiryAtBefore(ReservationStatus.PENDING.toString(), expiryAt);
+		return reservationJpaRepository.findByStatusAndExpiryAtBefore(ReservationStatus.RESERVED.name(), expiryAt);
 	}
 }

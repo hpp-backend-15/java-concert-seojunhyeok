@@ -1,8 +1,8 @@
 package com.hhp.ConcertReservation.application.scheduler;
 
 import com.hhp.ConcertReservation.common.enums.SeatStatus;
-import com.hhp.ConcertReservation.domain.model.Reservation;
-import com.hhp.ConcertReservation.domain.model.Seat;
+import com.hhp.ConcertReservation.domain.entity.Reservation;
+import com.hhp.ConcertReservation.domain.entity.Seat;
 import com.hhp.ConcertReservation.domain.service.ReservationService;
 import com.hhp.ConcertReservation.domain.service.SeatService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class ReservationExpiryScheduler {
 
 		for (Reservation reservation : reservationsToExpire) {
 			Seat seat = seatService.findSeatById(reservation.getSeatId());
-			seat.setStatus(SeatStatus.AVAILABLE.toString());
+			seat.setStatus(SeatStatus.AVAILABLE.name());
 			seatService.save(seat);
 		}
 	}

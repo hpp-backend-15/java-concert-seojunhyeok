@@ -1,5 +1,6 @@
-package com.hhp.ConcertReservation.domain.model;
+package com.hhp.ConcertReservation.domain.entity;
 
+import com.hhp.ConcertReservation.common.enums.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -23,7 +24,7 @@ public class Reservation {
 	private Long seatId;
 
 	@Column(name = "status", length = 100, nullable = false)
-	private String status;  // PENDING, CONFIRMED, CANCELLED
+	private String status;
 
 	@Column(name = "expiry_at", nullable = false)
 	private LocalDateTime expiryAt;
@@ -35,5 +36,17 @@ public class Reservation {
 		this.seatId = seatId;
 		this.status = status;
 		this.expiryAt = expiryAt;
+	}
+
+	/**
+	 * 예약의 상태를 확인하여 결제 가능한지 검증하는 메서드
+	 * @throws IllegalStateException 예약이 이미 결제되었거나 취소된 경우
+	 */
+	public void validateReservationAvailability() {
+		if (this.status.equals(ReservationStatus.PAID.name())) {
+			throw new IllegalStateException("해당 예약은 이미 결제되었습니다.");
+		} else if (this.status.equals(ReservationStatus.CANCELLED.name())) {
+			throw new IllegalStateException("해당 예약은 이미 취소되었습니다.");
+		}
 	}
 }

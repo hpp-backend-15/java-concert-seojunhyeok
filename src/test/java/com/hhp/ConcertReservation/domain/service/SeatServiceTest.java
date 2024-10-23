@@ -1,7 +1,7 @@
 package com.hhp.ConcertReservation.domain.service;
 
 import com.hhp.ConcertReservation.common.enums.SeatStatus;
-import com.hhp.ConcertReservation.domain.model.Seat;
+import com.hhp.ConcertReservation.domain.entity.Seat;
 import com.hhp.ConcertReservation.infra.persistence.SeatJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -68,12 +68,12 @@ class SeatServiceTest {
 		Long concertScheduleId = 1L;
 		Seat seat1 = new Seat();
 		seat1.setId(1L);
-		seat1.setStatus(SeatStatus.AVAILABLE.toString());
+		seat1.setStatus(SeatStatus.AVAILABLE.name());
 		Seat seat2 = new Seat();
 		seat2.setId(2L);
-		seat2.setStatus(SeatStatus.AVAILABLE.toString());
+		seat2.setStatus(SeatStatus.AVAILABLE.name());
 
-		when(seatJpaRepository.findByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.AVAILABLE.toString()))
+		when(seatJpaRepository.findByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.AVAILABLE.name()))
 				.thenReturn(List.of(seat1, seat2));
 
 		// When
@@ -82,8 +82,8 @@ class SeatServiceTest {
 		// Then
 		assertNotNull(result);
 		assertEquals(2, result.size());
-		assertEquals(SeatStatus.AVAILABLE.toString(), result.get(0).getStatus());
-		assertEquals(SeatStatus.AVAILABLE.toString(), result.get(1).getStatus());
+		assertEquals(SeatStatus.AVAILABLE.name(), result.get(0).getStatus());
+		assertEquals(SeatStatus.AVAILABLE.name(), result.get(1).getStatus());
 	}
 
 	@Test
@@ -91,7 +91,7 @@ class SeatServiceTest {
 	void findAvailableSeats_noSeats() {
 		// Given
 		Long concertScheduleId = 1L;
-		when(seatJpaRepository.findByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.AVAILABLE.toString()))
+		when(seatJpaRepository.findByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.AVAILABLE.name()))
 				.thenReturn(List.of());
 
 		// When

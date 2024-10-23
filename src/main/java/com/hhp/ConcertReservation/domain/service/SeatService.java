@@ -1,7 +1,7 @@
 package com.hhp.ConcertReservation.domain.service;
 
 import com.hhp.ConcertReservation.common.enums.SeatStatus;
-import com.hhp.ConcertReservation.domain.model.Seat;
+import com.hhp.ConcertReservation.domain.entity.Seat;
 import com.hhp.ConcertReservation.infra.persistence.SeatJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,10 +23,6 @@ public class SeatService {
 	}
 
 	public List<Seat> findAvailableSeats(Long concertScheduleId) {
-		return seatJpaRepository.findByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.AVAILABLE.toString());
-	}
-
-	public Seat updateSeat(Seat seat) {
-		return seatJpaRepository.save(seat);
+		return seatJpaRepository.findByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.AVAILABLE.name());
 	}
 }

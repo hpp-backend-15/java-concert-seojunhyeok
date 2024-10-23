@@ -1,6 +1,6 @@
 package com.hhp.ConcertReservation.domain.service;
 
-import com.hhp.ConcertReservation.domain.model.ConcertSchedule;
+import com.hhp.ConcertReservation.domain.entity.ConcertSchedule;
 import com.hhp.ConcertReservation.infra.persistence.ConcertScheduleJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

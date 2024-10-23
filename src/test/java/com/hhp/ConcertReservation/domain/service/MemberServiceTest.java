@@ -1,6 +1,6 @@
 package com.hhp.ConcertReservation.domain.service;
 
-import com.hhp.ConcertReservation.domain.model.Member;
+import com.hhp.ConcertReservation.domain.entity.Member;
 import com.hhp.ConcertReservation.infra.persistence.MemberJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

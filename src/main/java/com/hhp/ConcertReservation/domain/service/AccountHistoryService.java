@@ -1,7 +1,7 @@
 package com.hhp.ConcertReservation.domain.service;
 
 import com.hhp.ConcertReservation.common.enums.AccountHistoryType;
-import com.hhp.ConcertReservation.domain.model.AccountHistory;
+import com.hhp.ConcertReservation.domain.entity.AccountHistory;
 import com.hhp.ConcertReservation.infra.persistence.AccountHistoryJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ public class AccountHistoryService {
 		AccountHistory accountHistory = new AccountHistory();
 		accountHistory.setAccountId(accountId);
 		accountHistory.setAmount(amount);
-		accountHistory.setType(type);
+		accountHistory.setType(type.name());
 		accountHistory.setCreateAt(LocalDateTime.now());
 
 		accountHistoryJpaRepository.save(accountHistory);

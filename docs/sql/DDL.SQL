@@ -33,7 +33,7 @@ CREATE TABLE reservation (
                              id BIGINT PRIMARY KEY AUTO_INCREMENT,
                              member_id BIGINT NOT NULL,
                              seat_id BIGINT NOT NULL,
-                             status VARCHAR(100) NOT NULL, -- 'PENDING', 'CONFIRMED', 'CANCELLED'
+                             status VARCHAR(100) NOT NULL, -- 'RESERVED', 'PAID', 'CANCELLED'
                              expiry_at TIMESTAMP NOT NULL,
                              FOREIGN KEY (member_id) REFERENCES member(id),
                              FOREIGN KEY (seat_id) REFERENCES seat(id)

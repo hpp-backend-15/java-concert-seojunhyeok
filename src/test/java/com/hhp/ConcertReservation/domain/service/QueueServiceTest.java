@@ -1,7 +1,7 @@
 package com.hhp.ConcertReservation.domain.service;
 
 import com.hhp.ConcertReservation.common.enums.QueueStatus;
-import com.hhp.ConcertReservation.domain.model.Queue;
+import com.hhp.ConcertReservation.domain.entity.Queue;
 import com.hhp.ConcertReservation.infra.persistence.QueueJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -70,7 +70,7 @@ class QueueServiceTest {
 		String token = "valid-token";
 		Queue queue = new Queue();
 		queue.setToken(token);
-		queue.setStatus(QueueStatus.WAITING.toString());
+		queue.setStatus(QueueStatus.WAITING.name());
 
 		when(queueJpaRepository.findByToken(token))
 				.thenReturn(Optional.of(queue));
@@ -79,7 +79,7 @@ class QueueServiceTest {
 		Queue actualQueue = queueService.findQueueByToken(token);
 
 		// then
-		assertEquals(QueueStatus.WAITING.toString(), actualQueue.getStatus());
+		assertEquals(QueueStatus.WAITING.name(), actualQueue.getStatus());
 	}
 
 	@Test

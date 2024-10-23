@@ -1,9 +1,9 @@
 package com.hhp.ConcertReservation.domain.service;
 
 import com.hhp.ConcertReservation.common.enums.ReservationStatus;
-import com.hhp.ConcertReservation.domain.model.Member;
-import com.hhp.ConcertReservation.domain.model.Reservation;
-import com.hhp.ConcertReservation.domain.model.Seat;
+import com.hhp.ConcertReservation.domain.entity.Member;
+import com.hhp.ConcertReservation.domain.entity.Reservation;
+import com.hhp.ConcertReservation.domain.entity.Seat;
 import com.hhp.ConcertReservation.infra.persistence.ReservationJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -75,7 +75,7 @@ class ReservationServiceTest {
 		seat.setId(1L);
 
 		LocalDateTime now = LocalDateTime.now();
-		Reservation reservation = new Reservation(member.getId(), seat.getId(), ReservationStatus.PENDING.toString(), now.plusMinutes(Reservation.SEAT_HOLD_TIME_MINUTES));
+		Reservation reservation = new Reservation(member.getId(), seat.getId(), ReservationStatus.RESERVED.name(), now.plusMinutes(Reservation.SEAT_HOLD_TIME_MINUTES));
 
 		when(reservationJpaRepository.save(any(Reservation.class))).thenReturn(reservation);
 
@@ -86,7 +86,7 @@ class ReservationServiceTest {
 		assertNotNull(result);
 		assertEquals(member.getId(), result.getMemberId());
 		assertEquals(seat.getId(), result.getSeatId());
-		assertEquals(ReservationStatus.PENDING.toString(), result.getStatus());
+		assertEquals(ReservationStatus.RESERVED.name(), result.getStatus());
 		assertTrue(result.getExpiryAt().isAfter(now));
 		verify(reservationJpaRepository).save(any(Reservation.class));
 	}

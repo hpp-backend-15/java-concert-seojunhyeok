@@ -1,6 +1,6 @@
 package com.hhp.ConcertReservation.infra.persistence;
 
-import com.hhp.ConcertReservation.domain.model.Reservation;
+import com.hhp.ConcertReservation.domain.entity.Reservation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

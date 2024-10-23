@@ -3,15 +3,20 @@ package com.hhp.ConcertReservation.application.facade;
 import com.hhp.ConcertReservation.application.dto.QueueApplicationDto;
 import com.hhp.ConcertReservation.domain.entity.Queue;
 import com.hhp.ConcertReservation.infra.persistence.QueueJpaRepository;
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@RunWith(SpringRunner.class)
+@AutoConfigureEmbeddedDatabase
 @SpringBootTest
 @Transactional
 class QueueFacadeIntegrationTest {

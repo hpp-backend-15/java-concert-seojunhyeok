@@ -23,7 +23,7 @@ public class ReservationFacade {
 	public ReservationApplicationDto.reserveSeatResponse reserveSeat(Long memberId, Long seatId) {
 		Member member = memberService.findMemberById(memberId);
 
-		Seat seat = seatService.findSeatById(seatId);
+		Seat seat = seatService.findSeatByIdWithLock(seatId);
 
 		seat.validateSeatAvailability();
 

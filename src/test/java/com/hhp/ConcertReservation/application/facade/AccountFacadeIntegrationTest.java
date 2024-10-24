@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @RunWith(SpringRunner.class)
 @AutoConfigureEmbeddedDatabase
 @SpringBootTest
-@Transactional
 class AccountFacadeIntegrationTest {
 
 	@Autowired
@@ -44,6 +43,7 @@ class AccountFacadeIntegrationTest {
 	}
 
 	@Test
+	@Transactional
 	@DisplayName("충전 성공 - Account와 AccountHistory가 업데이트 된다")
 	void chargeBalance_Success() {
 		// Given
@@ -68,6 +68,7 @@ class AccountFacadeIntegrationTest {
 	}
 
 	@Test
+	@Transactional
 	@DisplayName("충전 실패 - 잘못된 금액 입력시 예외 발생")
 	void chargeBalance_Fail_InvalidAmount() {
 		// Given

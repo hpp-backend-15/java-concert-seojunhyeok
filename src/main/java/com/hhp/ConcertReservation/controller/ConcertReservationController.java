@@ -19,9 +19,7 @@ import com.hhp.ConcertReservation.domain.service.SeatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,7 +27,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class ConcertReservationController implements ConcertReservationApi {
+public class ConcertReservationController implements com.hhp.ConcertReservation.controller.ConcertReservationApi {
 
 	private final ReservationFacade reservationFacade;
 	private final QueueFacade queueFacade;
@@ -40,6 +38,7 @@ public class ConcertReservationController implements ConcertReservationApi {
 	private final SeatService seatService;
 
 	@Override
+	@PostMapping("/queue")
 	public ResponseEntity<ResponseDto.QueueResponse> addToQueue(RequestDto.PostQueue requestDto) {
 		QueueApplicationDto.getQueuePositionResponse result = queueFacade.addToQueueAndGetQueuePosition(requestDto.memberId());
 		ResponseDto.QueueResponse response = new ResponseDto.QueueResponse(result.queue().getToken(), result.queue().getStatus(), result.queuePosition());
@@ -48,6 +47,7 @@ public class ConcertReservationController implements ConcertReservationApi {
 	}
 
 	@Override
+	@GetMapping("/queue")
 	public ResponseEntity<ResponseDto.QueueResponse> getQueuePosition(@RequestHeader String token) {
 		QueueApplicationDto.getQueuePositionResponse result = queueFacade.getQueuePosition(token);
 		ResponseDto.QueueResponse response = new ResponseDto.QueueResponse(result.queue().getToken(), result.queue().getStatus(), result.queuePosition());
@@ -56,6 +56,7 @@ public class ConcertReservationController implements ConcertReservationApi {
 	}
 
 	@Override
+	@PostMapping("/reservations")
 	public ResponseEntity<ResponseDto.ReserveSeat> reserveSeat(RequestDto.reserveSeat requestDto) {
 		ReservationApplicationDto.reserveSeatResponse reserveSeatResponse = reservationFacade.reserveSeat(requestDto.memberId(), requestDto.seatId());
 		ResponseDto.ReserveSeat response = new ResponseDto.ReserveSeat(reserveSeatResponse.reservation().getId());
@@ -64,6 +65,7 @@ public class ConcertReservationController implements ConcertReservationApi {
 	}
 
 	@Override
+	@PostMapping("/payment")
 	public ResponseEntity<ResponseDto.ProcessPayment> processPayment(RequestDto.processPayment requestDto) {
 		PaymentApplicationDto.processReservationPaymentResponse result = paymentFacade.processReservationPayment(requestDto.reservationId());
 		ResponseDto.ProcessPayment response = new ResponseDto.ProcessPayment(result.history().getAccountId(), result.history().getAmount(), result.history().getType());
@@ -72,6 +74,7 @@ public class ConcertReservationController implements ConcertReservationApi {
 	}
 
 	@Override
+	@PostMapping("/charge")
 	public ResponseEntity<ResponseDto.ChargeBalance> chargeBalance(RequestDto.ChargeBalance requestDto) {
 		AccountApplicationDto.chargeBalanceResponse result = accountFacade.chargeBalance(requestDto.memberId(), requestDto.amount());
 		ResponseDto.ChargeBalance response = new ResponseDto.ChargeBalance(result.history().getAccountId(), result.history().getAmount(), result.history().getType());
@@ -80,7 +83,8 @@ public class ConcertReservationController implements ConcertReservationApi {
 	}
 
 	@Override
-	public ResponseEntity<ResponseDto.GetBalance> getBalance(Long accountId) {
+	@GetMapping("/accounts/{accountId}")
+	public ResponseEntity<ResponseDto.GetBalance> getBalance(@PathVariable Long accountId) {
 		Account account = accountService.findAccountById(accountId);
 		ResponseDto.GetBalance response = new ResponseDto.GetBalance(account.getId(), account.getBalance());
 
@@ -88,7 +92,8 @@ public class ConcertReservationController implements ConcertReservationApi {
 	}
 
 	@Override
-	public ResponseEntity<ResponseDto.GetAvailableConcertSchedules> getAvailableConcertSchedules(LocalDateTime dateTime) {
+	@GetMapping("/concert-schedule/available/{dateTime}")
+	public ResponseEntity<ResponseDto.GetAvailableConcertSchedules> getAvailableConcertSchedules(@PathVariable LocalDateTime dateTime) {
 		List<ConcertSchedule> result = concertScheduleService.findAvailableConcertSchedules(dateTime);
 		ResponseDto.GetAvailableConcertSchedules response = new ResponseDto.GetAvailableConcertSchedules(result);
 
@@ -96,7 +101,8 @@ public class ConcertReservationController implements ConcertReservationApi {
 	}
 
 	@Override
-	public ResponseEntity<ResponseDto.GetAvailableSeat> getAvailableSeat(Long concertScheduleId) {
+	@GetMapping("/concert-schedule/{concertScheduleId}/seats/available")
+	public ResponseEntity<ResponseDto.GetAvailableSeat> getAvailableSeat(@PathVariable Long concertScheduleId) {
 		List<Seat> result = seatService.findAvailableSeats(concertScheduleId);
 		ResponseDto.GetAvailableSeat response = new ResponseDto.GetAvailableSeat(result);
 

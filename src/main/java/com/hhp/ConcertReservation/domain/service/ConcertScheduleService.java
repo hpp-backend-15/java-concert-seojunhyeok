@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +17,7 @@ public class ConcertScheduleService {
 	public ConcertSchedule findConcertScheduleById(Long id) {
 		return concertScheduleJpaRepository
 				       .findById(id)
-				       .orElseThrow(() -> new IllegalArgumentException("콘서트 일정이 존재하지 않습니다."));
+				       .orElseThrow(() -> new NoSuchElementException("콘서트 일정이 존재하지 않습니다."));
 	}
 
 	public List<ConcertSchedule> findAvailableConcertSchedules(LocalDateTime concert_date) {

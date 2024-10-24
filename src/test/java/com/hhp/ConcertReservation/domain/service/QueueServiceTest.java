@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -83,7 +84,7 @@ class QueueServiceTest {
 	}
 
 	@Test
-	@DisplayName("토큰이 대기열에 없을 때 IllegalArgumentException을 던져야 한다")
+	@DisplayName("토큰이 대기열에 없을 때 NoSuchElementException을 던져야 한다")
 	void getQueueStatus_ShouldThrowException_WhenTokenDoesNotExist() {
 		// given
 		String token = "invalid-token";
@@ -92,7 +93,7 @@ class QueueServiceTest {
 				.thenReturn(Optional.empty());
 
 		// when & then
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+		NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> {
 			queueService.findQueueByToken(token);
 		});
 

@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,7 +55,7 @@ class SeatServiceTest {
 		when(seatJpaRepository.findById(anyLong())).thenReturn(Optional.empty());
 
 		// When & Then
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+		NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> {
 			seatService.findSeatById(1L);
 		});
 

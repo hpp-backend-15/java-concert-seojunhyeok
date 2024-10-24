@@ -5,6 +5,8 @@ import com.hhp.ConcertReservation.infra.persistence.MemberJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
+
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -22,6 +24,6 @@ public class MemberService {
 
 	public Member findMemberById(Long memberId) {
 		return memberJpaRepository.findById(memberId)
-				       .orElseThrow(() -> new IllegalArgumentException("멤버 정보를 찾을 수 없습니다."));
+				       .orElseThrow(() -> new NoSuchElementException("멤버 정보를 찾을 수 없습니다."));
 	}
 }

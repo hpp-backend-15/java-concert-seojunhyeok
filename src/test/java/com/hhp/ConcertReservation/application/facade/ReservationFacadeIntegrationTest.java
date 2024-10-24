@@ -16,6 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.NoSuchElementException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -81,7 +83,7 @@ class ReservationFacadeIntegrationTest {
 		Seat savedAvailableSeat = seatService.save(availableSeat);
 
 		//when & then
-		assertThrows(IllegalArgumentException.class, () -> {
+		assertThrows(NoSuchElementException.class, () -> {
 			reservationFacade.reserveSeat(memberId, savedAvailableSeat.getId());
 		});
 	}
@@ -94,7 +96,7 @@ class ReservationFacadeIntegrationTest {
 		Long seatId = 1L;
 
 		//when & then
-		assertThrows(IllegalArgumentException.class, () -> {
+		assertThrows(NoSuchElementException.class, () -> {
 			reservationFacade.reserveSeat(savedMember.getId(), seatId);
 		});
 	}

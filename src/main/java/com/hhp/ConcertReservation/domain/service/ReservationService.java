@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public class ReservationService {
 	public Reservation findById(Long reservationId) {
 		return reservationJpaRepository
 				       .findById(reservationId)
-				       .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다. 예약 ID: " + reservationId));
+				       .orElseThrow(() -> new NoSuchElementException("예약 정보를 찾을 수 없습니다. 예약 ID: " + reservationId));
 	}
 
 	public Reservation createReservation(Member member, Seat seat) {

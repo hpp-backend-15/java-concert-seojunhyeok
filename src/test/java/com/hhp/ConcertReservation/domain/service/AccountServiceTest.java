@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,7 +60,7 @@ class AccountServiceTest {
 		when(accountJpaRepository.findById(anyLong())).thenReturn(Optional.empty());
 
 		// When & Then
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+		NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> {
 			accountService.findAccountById(1L);
 		});
 
@@ -89,7 +90,7 @@ class AccountServiceTest {
 		when(accountJpaRepository.findByMemberId(anyLong())).thenReturn(Optional.empty());
 
 		// When & Then
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+		NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> {
 			accountService.findAccountByMemberId(1L);
 		});
 
@@ -124,10 +125,11 @@ class AccountServiceTest {
 		when(accountJpaRepository.findById(invalidAccountId)).thenReturn(java.util.Optional.empty());
 
 		// When & Then
-		assertThrows(IllegalArgumentException.class, () -> {
+		NoSuchElementException noSuchElementException = assertThrows(NoSuchElementException.class, () -> {
 			accountService.chargeBalance(invalidAccountId, chargeAmount);
 		});
 
+		assertEquals(noSuchElementException.getMessage(), "해당 계좌를 찾을 수 없습니다. 계좌 ID: 999");
 		verify(accountJpaRepository, times(1)).findById(invalidAccountId);
 		verify(accountJpaRepository, never()).save(any());
 	}

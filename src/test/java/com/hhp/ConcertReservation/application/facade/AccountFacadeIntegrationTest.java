@@ -74,7 +74,7 @@ class AccountFacadeIntegrationTest {
 		Long amount = -100L;
 
 		// When & Then
-		assertThrows(IllegalArgumentException.class, () -> accountFacade.chargeBalance(account.getId(), amount));
+		assertThrows(IllegalArgumentException.class, () -> accountFacade.chargeBalance(account.getMemberId(), amount));
 		var histories = accountHistoryService.findAllByAccountId(account.getId());
 		assertThat(histories).isEmpty();
 	}

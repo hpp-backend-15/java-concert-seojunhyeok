@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +20,7 @@ public class SeatService {
 
 	public Seat findSeatById(Long seatId) {
 		return seatJpaRepository.findById(seatId)
-				       .orElseThrow(() -> new IllegalArgumentException("좌석 정보를 찾을 수 없습니다."));
+				       .orElseThrow(() -> new NoSuchElementException("좌석 정보를 찾을 수 없습니다."));
 	}
 
 	public List<Seat> findAvailableSeats(Long concertScheduleId) {

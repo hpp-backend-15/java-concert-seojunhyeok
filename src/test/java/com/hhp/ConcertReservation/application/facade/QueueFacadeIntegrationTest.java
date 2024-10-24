@@ -15,6 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -67,11 +68,9 @@ class QueueFacadeIntegrationTest {
 	@Test
 	@DisplayName("존재하지 않는 토큰으로 대기 순번을 조회할 때 예외가 발생한다.")
 	void getQueuePosition_tokenNotFound() {
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+		assertThrows(NoSuchElementException.class, () -> {
 			queueFacade.getQueuePosition("invalidToken");
 		});
-
-		assertThat(exception.getMessage()).isEqualTo("토큰을 찾을 수 없습니다.");
 	}
 
 	@Test

@@ -17,6 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -112,7 +113,7 @@ class PaymentFacadeIntegrationTest {
 		Long invalidReservationId = Long.MAX_VALUE;
 
 		//when & then
-		assertThrows(IllegalArgumentException.class, () -> paymentFacade.processReservationPayment(invalidReservationId));
+		assertThrows(NoSuchElementException.class, () -> paymentFacade.processReservationPayment(invalidReservationId));
 		var histories = accountHistoryService.findAllByAccountId(account.getId());
 		assertThat(histories).isEmpty();
 	}

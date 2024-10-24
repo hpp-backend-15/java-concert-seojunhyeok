@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -24,13 +25,13 @@ public class QueueService {
 	public Queue findQueueByToken(String token) {
 		return queueJpaRepository
 				       .findByToken(token)
-				       .orElseThrow(() -> new IllegalArgumentException("토큰을 찾을 수 없습니다."));
+				       .orElseThrow(() -> new NoSuchElementException("토큰을 찾을 수 없습니다."));
 	}
 
 	public Queue findQueueByMemberId(Long memberId) {
 		return queueJpaRepository
 				       .findByMemberId(memberId)
-				       .orElseThrow(() -> new IllegalArgumentException("토큰을 찾을 수 없습니다."));
+				       .orElseThrow(() -> new NoSuchElementException("토큰을 찾을 수 없습니다."));
 	}
 
 	public Queue addToQueue(String token, Long memberId) {

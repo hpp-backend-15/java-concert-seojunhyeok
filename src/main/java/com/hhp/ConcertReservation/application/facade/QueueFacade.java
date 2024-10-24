@@ -1,7 +1,7 @@
 package com.hhp.ConcertReservation.application.facade;
 
 import com.hhp.ConcertReservation.application.dto.QueueApplicationDto;
-import com.hhp.ConcertReservation.domain.model.Queue;
+import com.hhp.ConcertReservation.domain.entity.Queue;
 import com.hhp.ConcertReservation.domain.service.QueueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

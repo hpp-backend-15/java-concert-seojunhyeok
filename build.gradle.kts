@@ -31,6 +31,9 @@ dependencies {
     // Swagger and OpenAPI dependencies
     implementation("io.swagger.core.v3:swagger-annotations:2.2.10") // Latest Swagger annotations version
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0") // SpringDoc for OpenAPI
+
+    // Test Container
+    testImplementation("io.zonky.test:embedded-database-spring-test:2.5.1")
 }
 
 tasks.withType<Test> {

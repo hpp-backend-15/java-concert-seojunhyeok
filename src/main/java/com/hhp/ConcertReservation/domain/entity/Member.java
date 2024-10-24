@@ -1,4 +1,4 @@
-package com.hhp.ConcertReservation.domain.model;
+package com.hhp.ConcertReservation.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

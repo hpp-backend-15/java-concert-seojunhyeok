@@ -2,18 +2,27 @@ package com.hhp.ConcertReservation.application.facade;
 
 import com.hhp.ConcertReservation.application.dto.AccountApplicationDto;
 import com.hhp.ConcertReservation.common.enums.AccountHistoryType;
-import com.hhp.ConcertReservation.domain.model.Account;
-import com.hhp.ConcertReservation.domain.model.AccountHistory;
+import com.hhp.ConcertReservation.domain.entity.Account;
+import com.hhp.ConcertReservation.domain.entity.AccountHistory;
+import com.hhp.ConcertReservation.domain.service.AccountHistoryService;
 import com.hhp.ConcertReservation.domain.service.AccountService;
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+@RunWith(SpringRunner.class)
+@AutoConfigureEmbeddedDatabase
 @SpringBootTest
+@Transactional
 class AccountFacadeIntegrationTest {
 
 	@Autowired
@@ -22,16 +31,16 @@ class AccountFacadeIntegrationTest {
 	@Autowired
 	private AccountService accountService;
 
-	private Long accountId;
+	private Account account;
+	@Autowired
+	private AccountHistoryService accountHistoryService;
 
 	@BeforeEach
 	void setUp() {
-		// 필요한 데이터 미리 설정
-		Account account = new Account();
+		account = new Account();
 		account.setMemberId(1L);
 		account.setBalance(1000L);
-		accountService.createAccount(account);
-		this.accountId = account.getId();
+		account = accountService.save(account);
 	}
 
 	@Test
@@ -41,11 +50,11 @@ class AccountFacadeIntegrationTest {
 		Long amount = 500L;
 
 		// When
-		AccountApplicationDto.chargeBalanceResponse response = accountFacade.chargeBalance(accountId, amount);
+		AccountApplicationDto.chargeBalanceResponse response = accountFacade.chargeBalance(account.getId(), amount);
 
 		// Then
 		Account updatedAccount = response.account();
-		AccountHistory accountHistory = response.accountHistory();
+		AccountHistory accountHistory = response.history();
 
 		// Account 검증
 		assertNotNull(updatedAccount);
@@ -53,9 +62,9 @@ class AccountFacadeIntegrationTest {
 
 		// AccountHistory 검증
 		assertNotNull(accountHistory);
-		assertEquals(accountId, accountHistory.getAccountId());
+		assertEquals(account.getId(), accountHistory.getAccountId());
 		assertEquals(amount, accountHistory.getAmount());
-		assertEquals(AccountHistoryType.CHARGE, accountHistory.getType());
+		assertEquals(AccountHistoryType.CHARGE.name(), accountHistory.getType());
 	}
 
 	@Test
@@ -65,10 +74,8 @@ class AccountFacadeIntegrationTest {
 		Long amount = -100L;
 
 		// When & Then
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-			accountFacade.chargeBalance(accountId, amount);
-		});
-
-		assertEquals("충전금액은 0보다 커야합니다.", exception.getMessage());
+		assertThrows(IllegalArgumentException.class, () -> accountFacade.chargeBalance(account.getMemberId(), amount));
+		var histories = accountHistoryService.findAllByAccountId(account.getId());
+		assertThat(histories).isEmpty();
 	}
 }

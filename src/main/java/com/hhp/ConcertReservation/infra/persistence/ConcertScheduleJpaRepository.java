@@ -1,6 +1,6 @@
 package com.hhp.ConcertReservation.infra.persistence;
 
-import com.hhp.ConcertReservation.domain.model.ConcertSchedule;
+import com.hhp.ConcertReservation.domain.entity.ConcertSchedule;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;

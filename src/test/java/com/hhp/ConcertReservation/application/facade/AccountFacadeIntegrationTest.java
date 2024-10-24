@@ -54,7 +54,7 @@ class AccountFacadeIntegrationTest {
 
 		// Then
 		Account updatedAccount = response.account();
-		AccountHistory accountHistory = response.accountHistory();
+		AccountHistory accountHistory = response.history();
 
 		// Account 검증
 		assertNotNull(updatedAccount);

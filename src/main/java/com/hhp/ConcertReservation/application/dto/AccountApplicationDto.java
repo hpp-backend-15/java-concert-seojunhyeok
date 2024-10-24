@@ -6,6 +6,6 @@ import com.hhp.ConcertReservation.domain.entity.AccountHistory;
 public class AccountApplicationDto {
 	public record chargeBalanceResponse(
 			Account account,
-			AccountHistory accountHistory
+			AccountHistory history
 	) {}
 }

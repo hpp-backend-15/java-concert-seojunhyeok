@@ -69,12 +69,25 @@ public class QueueService {
 		List<Queue> waitingEntries = queueJpaRepository.findTopByStatusOrderByIdAsc(QueueStatus.WAITING.name(), pageable);
 
 		for (Queue entry : waitingEntries) {
-			entry.expireToken();
+			entry.setStatus(QueueStatus.ENTERED.name());
+			entry.setExpiryAt(LocalDateTime.now().plusMinutes(Queue.QUEUE_TOKEN_EXPIRY_TIME));
 			queueJpaRepository.save(entry);
 		}
 	}
 
 	public Queue save(Queue queue) {
 		return queueJpaRepository.save(queue);
+	}
+
+	public Boolean isValidToken(String token) {
+		Queue queue = queueJpaRepository
+				              .findByToken(token)
+				              .orElseThrow(() -> new NoSuchElementException("토큰을 찾을 수 없습니다."));
+
+		if (queue.getStatus().equals(QueueStatus.WAITING.name()) || queue.getStatus().equals(QueueStatus.EXPIRED.name())) {
+			throw new IllegalStateException("토큰이 유효하지 않습니다.");
+		}
+
+		return true;
 	}
 }

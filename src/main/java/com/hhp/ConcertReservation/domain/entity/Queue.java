@@ -32,6 +32,5 @@ public class Queue {
 
 	public void expireToken() {
 		this.setStatus(QueueStatus.EXPIRED.name());
-		this.setExpiryAt(LocalDateTime.now());
 	}
 }

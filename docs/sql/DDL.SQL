@@ -24,7 +24,8 @@ CREATE TABLE seat (
                       concert_schedule_id BIGINT NOT NULL,
                       seat_number INT NOT NULL,
                       status VARCHAR(100) NOT NULL, -- 'AVAILABLE', 'RESERVED', 'PAID'
-                      price INT NOT NULL,
+                      price BIGINT NOT NULL,
+                      version BIGINT NOT NULL,
                       FOREIGN KEY (concert_schedule_id) REFERENCES concert_schedule(id)
 );
 
@@ -33,7 +34,7 @@ CREATE TABLE reservation (
                              id BIGINT PRIMARY KEY AUTO_INCREMENT,
                              member_id BIGINT NOT NULL,
                              seat_id BIGINT NOT NULL,
-                             status VARCHAR(100) NOT NULL, -- 'PENDING', 'CONFIRMED', 'CANCELLED'
+                             status VARCHAR(100) NOT NULL, -- 'RESERVED', 'PAID', 'CANCELED'
                              expiry_at TIMESTAMP NOT NULL,
                              FOREIGN KEY (member_id) REFERENCES member(id),
                              FOREIGN KEY (seat_id) REFERENCES seat(id)

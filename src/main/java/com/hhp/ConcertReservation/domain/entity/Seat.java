@@ -1,4 +1,4 @@
-package com.hhp.ConcertReservation.domain.model;
+package com.hhp.ConcertReservation.domain.entity;
 
 import com.hhp.ConcertReservation.common.enums.SeatStatus;
 import jakarta.persistence.*;
@@ -30,7 +30,7 @@ public class Seat {
 	 * @throws IllegalStateException 좌석이 이미 예약되었거나 결제된 경우
 	 */
 	public void validateSeatAvailability() {
-		if (this.status.equals(SeatStatus.RESERVED.toString()) || this.status.equals(SeatStatus.PAID.toString())) {
+		if (this.status.equals(SeatStatus.RESERVED.name()) || this.status.equals(SeatStatus.PAID.name())) {
 			throw new IllegalStateException("해당 좌석은 이미 예약되었습니다.");
 		}
 	}

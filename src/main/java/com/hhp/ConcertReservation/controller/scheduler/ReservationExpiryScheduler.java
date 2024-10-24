@@ -1,8 +1,9 @@
-package com.hhp.ConcertReservation.application.scheduler;
+package com.hhp.ConcertReservation.controller.scheduler;
 
+import com.hhp.ConcertReservation.common.enums.ReservationStatus;
 import com.hhp.ConcertReservation.common.enums.SeatStatus;
-import com.hhp.ConcertReservation.domain.model.Reservation;
-import com.hhp.ConcertReservation.domain.model.Seat;
+import com.hhp.ConcertReservation.domain.entity.Reservation;
+import com.hhp.ConcertReservation.domain.entity.Seat;
 import com.hhp.ConcertReservation.domain.service.ReservationService;
 import com.hhp.ConcertReservation.domain.service.SeatService;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +21,17 @@ public class ReservationExpiryScheduler {
 
 	@Scheduled(fixedRate = 60000)
 	public void processExpiredReservations() {
+		//임시점유 기간이 종료된 예약 조회
 		List<Reservation> reservationsToExpire = reservationService.findReservationsToExpire(LocalDateTime.now());
 
 		for (Reservation reservation : reservationsToExpire) {
+			//예약 상태 변경 RESERVED -> CANCELED
+			reservation.setStatus(ReservationStatus.CANCELED.name());
+			reservationService.save(reservation);
+
+			//좌석 상태 변경 RESERVED -> AVAILABLE
 			Seat seat = seatService.findSeatById(reservation.getSeatId());
-			seat.setStatus(SeatStatus.AVAILABLE.toString());
+			seat.setStatus(SeatStatus.AVAILABLE.name());
 			seatService.save(seat);
 		}
 	}

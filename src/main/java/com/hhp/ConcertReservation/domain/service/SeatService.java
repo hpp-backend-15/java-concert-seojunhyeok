@@ -19,7 +19,7 @@ public class SeatService {
 	}
 
 	public Seat findSeatById(Long seatId) {
-		return seatJpaRepository.findById(seatId)
+		return seatJpaRepository.findByIdWithLock(seatId)
 				       .orElseThrow(() -> new NoSuchElementException("좌석 정보를 찾을 수 없습니다."));
 	}
 

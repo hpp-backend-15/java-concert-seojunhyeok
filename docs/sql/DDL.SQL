@@ -24,7 +24,8 @@ CREATE TABLE seat (
                       concert_schedule_id BIGINT NOT NULL,
                       seat_number INT NOT NULL,
                       status VARCHAR(100) NOT NULL, -- 'AVAILABLE', 'RESERVED', 'PAID'
-                      price INT NOT NULL,
+                      price BIGINT NOT NULL,
+                      version BIGINT NOT NULL,
                       FOREIGN KEY (concert_schedule_id) REFERENCES concert_schedule(id)
 );
 

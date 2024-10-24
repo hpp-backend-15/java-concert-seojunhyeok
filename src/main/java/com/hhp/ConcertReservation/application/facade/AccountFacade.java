@@ -18,7 +18,7 @@ public class AccountFacade {
 
 	@Transactional
 	public AccountApplicationDto.chargeBalanceResponse chargeBalance(Long memberId, Long amount) {
-		Account account = accountService.findAccountByMemberId(memberId);
+		Account account = accountService.findAccountByMemberIdWithLock(memberId);
 
 		account.chargeBalance(amount);
 

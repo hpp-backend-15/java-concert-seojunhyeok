@@ -34,7 +34,7 @@ public class PaymentFacade {
 		Long price = seat.getPrice();
 
 		//계좌 정보 조회
-		Account account = accountService.findAccountByMemberId(reservation.getMemberId());
+		Account account = accountService.findAccountByMemberIdWithLock(reservation.getMemberId());
 
 		//계좌 잔액 차감
 		account.useBalance(price);

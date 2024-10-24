@@ -18,14 +18,26 @@ public class AccountService {
 				       .orElseThrow(() -> new NoSuchElementException("해당 계좌를 찾을 수 없습니다. 계좌 ID: " + accountId));
 	}
 
+	public Account findAccountByIdWithLock(Long accountId) {
+		return accountJpaRepository
+				       .findByIdWithLock(accountId)
+				       .orElseThrow(() -> new NoSuchElementException("해당 계좌를 찾을 수 없습니다. 계좌 ID: " + accountId));
+	}
+
 	public Account findAccountByMemberId(Long memberId) {
 		return accountJpaRepository
 				       .findByMemberId(memberId)
 				       .orElseThrow(() -> new NoSuchElementException("해당 멤버의 계좌를 찾을 수 없습니다. 멤버 ID: " + memberId));
 	}
 
+	public Account findAccountByMemberIdWithLock(Long memberId) {
+		return accountJpaRepository
+				       .findByMemberIdWithLock(memberId)
+				       .orElseThrow(() -> new NoSuchElementException("해당 멤버의 계좌를 찾을 수 없습니다. 멤버 ID: " + memberId));
+	}
+
 	public void chargeBalance(Long accountId, Long amount) {
-		Account account = findAccountById(accountId);
+		Account account = findAccountByIdWithLock(accountId);
 		account.chargeBalance(amount);
 		accountJpaRepository.save(account);
 	}

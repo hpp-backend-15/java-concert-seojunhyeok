@@ -4,7 +4,7 @@ import com.hhp.ConcertReservation.application.dto.PaymentApplicationDto;
 import com.hhp.ConcertReservation.common.enums.AccountHistoryType;
 import com.hhp.ConcertReservation.common.enums.ReservationStatus;
 import com.hhp.ConcertReservation.common.enums.SeatStatus;
-import com.hhp.ConcertReservation.domain.model.*;
+import com.hhp.ConcertReservation.domain.entity.*;
 import com.hhp.ConcertReservation.domain.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +24,9 @@ public class PaymentFacade {
 		//예약 정보 조회
 		Reservation reservation = reservationService.findById(reservationId);
 
+		//예약 상태 유효성 확인
+		reservation.validateReservationAvailability();
+
 		//좌석 정보 조회
 		Seat seat = seatService.findSeatById(reservation.getSeatId());
 
@@ -40,10 +43,10 @@ public class PaymentFacade {
 		AccountHistory history = accountHistoryService.createHistory(account.getId(), price, AccountHistoryType.USE);
 
 		//예약 상태 변경
-		reservation.setStatus(ReservationStatus.CONFIRMED.toString());
+		reservation.setStatus(ReservationStatus.PAID.name());
 
 		//좌석 상태 변경
-		seat.setStatus(SeatStatus.PAID.toString());
+		seat.setStatus(SeatStatus.PAID.name());
 
 		//토큰 조회
 		Queue queue = queueService.findQueueByMemberId(reservation.getMemberId());
@@ -51,7 +54,13 @@ public class PaymentFacade {
 		//토큰 만료
 		queue.expireToken();
 
+		//변경사항 저장
+		Reservation updatedReservation = reservationService.save(reservation);
+		Seat updatedSeat = seatService.save(seat);
+		Account updatedAccount = accountService.save(account);
+		Queue updatedQueue = queueService.save(queue);
+
 		//반환
-		return new PaymentApplicationDto.processReservationPaymentResponse(reservation, seat, account, history, queue);
+		return new PaymentApplicationDto.processReservationPaymentResponse(updatedReservation, updatedSeat, updatedAccount, history, updatedQueue);
 	}
 }

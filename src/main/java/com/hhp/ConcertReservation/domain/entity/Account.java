@@ -1,4 +1,4 @@
-package com.hhp.ConcertReservation.domain.model;
+package com.hhp.ConcertReservation.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -34,7 +34,7 @@ public class Account {
 		Long usedBalance = this.balance - amount;
 
 		if (usedBalance.compareTo(0L) < 0) {
-			throw new IllegalArgumentException("잔여 포인트가 부족합니다. 현재 잔액: " + this.balance);
+			throw new IllegalStateException("잔여 포인트가 부족합니다. 현재 잔액: " + this.balance);
 		}
 
 		this.balance = usedBalance;

@@ -1,6 +1,6 @@
 package com.hhp.ConcertReservation.domain.service;
 
-import com.hhp.ConcertReservation.domain.model.Member;
+import com.hhp.ConcertReservation.domain.entity.Member;
 import com.hhp.ConcertReservation.infra.persistence.MemberJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,7 +52,7 @@ class MemberServiceTest {
 		when(memberJpaRepository.findById(anyLong())).thenReturn(Optional.empty());
 
 		// When & Then
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+		NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> {
 			memberService.findMemberById(1L);
 		});
 

@@ -1,6 +1,6 @@
 package com.hhp.ConcertReservation.domain.service;
 
-import com.hhp.ConcertReservation.domain.model.ConcertSchedule;
+import com.hhp.ConcertReservation.domain.entity.ConcertSchedule;
 import com.hhp.ConcertReservation.infra.persistence.ConcertScheduleJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +12,7 @@ import org.mockito.MockitoAnnotations;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,7 +55,7 @@ class ConcertScheduleServiceTest {
 		when(concertScheduleJpaRepository.findById(anyLong())).thenReturn(Optional.empty());
 
 		// When & Then
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+		NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> {
 			concertScheduleService.findConcertScheduleById(1L);
 		});
 

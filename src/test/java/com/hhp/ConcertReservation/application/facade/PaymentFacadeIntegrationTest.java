@@ -1,24 +1,29 @@
 package com.hhp.ConcertReservation.application.facade;
 
 import com.hhp.ConcertReservation.application.dto.PaymentApplicationDto;
-import com.hhp.ConcertReservation.common.enums.AccountHistoryType;
-import com.hhp.ConcertReservation.domain.model.Account;
-import com.hhp.ConcertReservation.domain.model.Queue;
-import com.hhp.ConcertReservation.domain.model.Reservation;
-import com.hhp.ConcertReservation.domain.model.Seat;
+import com.hhp.ConcertReservation.common.enums.QueueStatus;
+import com.hhp.ConcertReservation.common.enums.ReservationStatus;
+import com.hhp.ConcertReservation.common.enums.SeatStatus;
+import com.hhp.ConcertReservation.domain.entity.*;
 import com.hhp.ConcertReservation.domain.service.*;
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@RunWith(SpringRunner.class)
+@AutoConfigureEmbeddedDatabase
 @SpringBootTest
 @Transactional
 class PaymentFacadeIntegrationTest {
@@ -41,65 +46,74 @@ class PaymentFacadeIntegrationTest {
 	@Autowired
 	private QueueService queueService;
 
-	private Reservation reservation;
-	private Seat seat;
-	private Account account;
-	private Queue queue;
+	Reservation reservation;
+	Reservation canceledReservation;
+	Seat seat;
+	Account account;
+	Queue queue;
+	Member member;
 
 	@BeforeEach
 	void setUp() {
-		reservation = new Reservation();
-		reservation.setMemberId(1L);
-		reservation.setSeatId(1L);
-		reservation.setStatus("PENDING");
-		reservation.setExpiryAt(LocalDateTime.now().plusMinutes(5));
-		reservation = reservationService.save(reservation);
-
 		seat = new Seat();
 		seat.setConcertScheduleId(1L);
 		seat.setSeatNumber(1);
-		seat.setStatus("AVAILABLE");
+		seat.setStatus(SeatStatus.AVAILABLE.name());
 		seat.setPrice(100L);
 		seat = seatService.save(seat);
+
+		reservation = new Reservation();
+		reservation.setMemberId(1L);
+		reservation.setSeatId(seat.getId());
+		reservation.setStatus(ReservationStatus.RESERVED.name());
+		reservation.setExpiryAt(LocalDateTime.now().plusMinutes(5));
+		reservation = reservationService.save(reservation);
+
+		canceledReservation = new Reservation();
+		canceledReservation.setMemberId(2L);
+		canceledReservation.setSeatId(seat.getId());
+		canceledReservation.setStatus(ReservationStatus.CANCELED.name());
+		canceledReservation.setExpiryAt(LocalDateTime.now().plusMinutes(5));
+		canceledReservation = reservationService.save(canceledReservation);
 
 		account = new Account();
 		account.setMemberId(1L);
 		account.setBalance(500L);
-		account = accountService.createAccount(account);
+		account = accountService.save(account);
 
 		queue = new Queue();
 		queue.setMemberId(1L);
 		queue.setToken("testToken");
-		queue.setStatus("WAITING");
+		queue.setStatus(QueueStatus.WAITING.name());
 		queue = queueService.addToQueue(queue.getToken(), queue.getMemberId());
 	}
 
 	@Test
 	@DisplayName("성공적으로 예약 결제를 처리할 수 있다.")
 	void processReservationPayment_success() {
-		PaymentApplicationDto.processReservationPaymentResponse response = paymentFacade.processReservationPayment(1L);
+		//when
+		PaymentApplicationDto.processReservationPaymentResponse response = paymentFacade.processReservationPayment(reservation.getId());
 
 		assertThat(response).isNotNull();
-		assertThat(response.reservation().getStatus()).isEqualTo("CONFIRMED");
+		assertThat(response.reservation().getStatus()).isEqualTo("PAID");
 		assertThat(response.seat().getStatus()).isEqualTo("PAID");
-		assertThat(response.account().getBalance()).isEqualTo(400L);  // 잔액 차감
+		assertThat(response.account().getBalance()).isEqualTo(400L);
 		assertThat(response.queue().getStatus()).isEqualTo("EXPIRED");
 
-		// 실제로 AccountHistoryService가 기록되었는지 확인
 		var histories = accountHistoryService.findAllByAccountId(account.getId());
 		assertThat(histories).hasSize(1);
-		assertThat(histories.get(0).getType()).isEqualTo(AccountHistoryType.USE);
+		assertThat(histories.get(0).getType()).isEqualTo("USE");
 		assertThat(histories.get(0).getAmount()).isEqualTo(100L);
 	}
 
 	@Test
 	@DisplayName("존재하지 않는 예약 ID로 결제를 시도하면 예외가 발생한다.")
 	void processReservationPayment_reservationNotFound() {
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-			paymentFacade.processReservationPayment(2L);
-		});
+		//given
+		Long invalidReservationId = Long.MAX_VALUE;
 
-		assertThat(exception.getMessage()).isEqualTo("예약 정보를 찾을 수 없습니다.");
+		//when & then
+		assertThrows(NoSuchElementException.class, () -> paymentFacade.processReservationPayment(invalidReservationId));
 		var histories = accountHistoryService.findAllByAccountId(account.getId());
 		assertThat(histories).isEmpty();
 	}
@@ -108,28 +122,20 @@ class PaymentFacadeIntegrationTest {
 	@DisplayName("잔액이 부족한 경우 결제를 시도하면 예외가 발생한다.")
 	void processReservationPayment_insufficientBalance() {
 		account.setBalance(50L);  // 잔액 부족 설정
-		accountService.updateAccount(account);  // 잔액 업데이트
+		accountService.save(account);  // 잔액 업데이트
 
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-			paymentFacade.processReservationPayment(1L);
-		});
+		assertThrows(IllegalStateException.class, () -> paymentFacade.processReservationPayment(reservation.getId()));
 
-		assertThat(exception.getMessage()).isEqualTo("잔여 포인트가 부족합니다. 현재 잔액: 50");
 		var histories = accountHistoryService.findAllByAccountId(account.getId());
 		assertThat(histories).isEmpty();
 	}
 
 	@Test
-	@DisplayName("이미 결제된 좌석으로 결제를 시도하면 예외가 발생한다.")
-	void processReservationPayment_seatAlreadyPaid() {
-		seat.setStatus("PAID");  // 좌석 이미 결제 상태
-		seatService.updateSeat(seat);  // 좌석 상태 업데이트
+	@DisplayName("이미 결제 되었거나 취소 된 예약 ID로 결제를 시도하면 예외가 발생한다.")
+	void processReservationPayment_invalidReservationId() {
 
-		IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-			paymentFacade.processReservationPayment(1L);
-		});
+		assertThrows(IllegalStateException.class, () -> paymentFacade.processReservationPayment(canceledReservation.getId()));
 
-		assertThat(exception.getMessage()).isEqualTo("해당 좌석은 이미 예약되었습니다.");
 		var histories = accountHistoryService.findAllByAccountId(account.getId());
 		assertThat(histories).isEmpty();
 	}

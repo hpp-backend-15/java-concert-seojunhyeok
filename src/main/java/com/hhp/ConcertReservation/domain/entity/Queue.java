@@ -1,4 +1,4 @@
-package com.hhp.ConcertReservation.domain.model;
+package com.hhp.ConcertReservation.domain.entity;
 
 import com.hhp.ConcertReservation.common.enums.QueueStatus;
 import jakarta.persistence.*;
@@ -31,7 +31,6 @@ public class Queue {
 	private LocalDateTime expiryAt;
 
 	public void expireToken() {
-		this.setStatus(QueueStatus.EXPIRED.toString());
-		this.setExpiryAt(LocalDateTime.now());
+		this.setStatus(QueueStatus.EXPIRED.name());
 	}
 }

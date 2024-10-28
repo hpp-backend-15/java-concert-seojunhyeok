@@ -1,6 +1,5 @@
-package com.hhp.ConcertReservation.domain.model;
+package com.hhp.ConcertReservation.domain.entity;
 
-import com.hhp.ConcertReservation.common.enums.AccountHistoryType;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -22,7 +21,7 @@ public class AccountHistory {
 	private Long amount;
 
 	@Column(name = "type", length = 100, nullable = false)
-	private AccountHistoryType type;
+	private String type;
 
 	@Column(name = "create_at", nullable = false)
 	private LocalDateTime createAt;

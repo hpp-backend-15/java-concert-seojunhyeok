@@ -1,7 +1,7 @@
 package com.hhp.ConcertReservation.domain.service;
 
 import com.hhp.ConcertReservation.common.enums.QueueStatus;
-import com.hhp.ConcertReservation.domain.model.Queue;
+import com.hhp.ConcertReservation.domain.entity.Queue;
 import com.hhp.ConcertReservation.infra.persistence.QueueJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -70,7 +71,7 @@ class QueueServiceTest {
 		String token = "valid-token";
 		Queue queue = new Queue();
 		queue.setToken(token);
-		queue.setStatus(QueueStatus.WAITING.toString());
+		queue.setStatus(QueueStatus.WAITING.name());
 
 		when(queueJpaRepository.findByToken(token))
 				.thenReturn(Optional.of(queue));
@@ -79,11 +80,11 @@ class QueueServiceTest {
 		Queue actualQueue = queueService.findQueueByToken(token);
 
 		// then
-		assertEquals(QueueStatus.WAITING.toString(), actualQueue.getStatus());
+		assertEquals(QueueStatus.WAITING.name(), actualQueue.getStatus());
 	}
 
 	@Test
-	@DisplayName("토큰이 대기열에 없을 때 IllegalArgumentException을 던져야 한다")
+	@DisplayName("토큰이 대기열에 없을 때 NoSuchElementException을 던져야 한다")
 	void getQueueStatus_ShouldThrowException_WhenTokenDoesNotExist() {
 		// given
 		String token = "invalid-token";
@@ -92,10 +93,64 @@ class QueueServiceTest {
 				.thenReturn(Optional.empty());
 
 		// when & then
-		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+		NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> {
 			queueService.findQueueByToken(token);
 		});
 
 		assertEquals("토큰을 찾을 수 없습니다.", exception.getMessage());
+	}
+
+	@Test
+	@DisplayName("토큰 유효성 검사 중 토큰이 조회되지 않으면 NoSuchElementException이 발생한다")
+	void getQueueStatus_ShouldThrowException_WhenTokenExists() {
+		//given
+		String token = "valid-token";
+
+		//when
+		when(queueJpaRepository.findByToken(token))
+				.thenReturn(Optional.empty());
+
+		//then
+		NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> {
+			queueService.isValidToken(token);
+		});
+
+		assertEquals(exception.getMessage(), "토큰을 찾을 수 없습니다.");
+	}
+
+	@Test
+	@DisplayName("토큰 유효성 검사 중 토큰 상태가 ENTERD가 아니면 IllegalStateException이 발생한다.")
+	void shouldReturnFalseWhenTokenStatusIsNotENTERED(){
+		//given
+		String token = "invalid-token";
+		Queue queue = new Queue();
+		queue.setId(1L);
+		queue.setStatus(QueueStatus.EXPIRED.name());
+
+		//when
+		when(queueJpaRepository.findByToken(token)).thenReturn(Optional.of(queue));
+
+		IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+			queueService.isValidToken(token);
+		});
+
+		assertEquals(exception.getMessage(), "토큰이 유효하지 않습니다.");
+	}
+
+	@Test
+	@DisplayName("토큰 유효성 검사 중 토큰이 유효할 때 true가 반환된다.")
+	void shouldReturnTrueWhenTokenIsValid() {
+		//given
+		String token = "valid-token";
+		Queue queue = new Queue();
+		queue.setId(1L);
+		queue.setStatus(QueueStatus.ENTERED.name());
+
+		//when
+		when(queueJpaRepository.findByToken(token)).thenReturn(Optional.of(queue));
+
+		Boolean validationResult = queueService.isValidToken(token);
+
+		assertEquals(true, validationResult);
 	}
 }

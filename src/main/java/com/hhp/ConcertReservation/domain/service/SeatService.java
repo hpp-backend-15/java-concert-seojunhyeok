@@ -23,6 +23,11 @@ public class SeatService {
 				       .orElseThrow(() -> new NoSuchElementException("좌석 정보를 찾을 수 없습니다."));
 	}
 
+	public Seat findSeatByIdWithLock(Long seatId) {
+		return seatJpaRepository.findByIdWithLock(seatId)
+				       .orElseThrow(() -> new NoSuchElementException("좌석 정보를 찾을 수 없습니다."));
+	}
+
 	public List<Seat> findAvailableSeats(Long concertScheduleId) {
 		return seatJpaRepository.findByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.AVAILABLE.name());
 	}

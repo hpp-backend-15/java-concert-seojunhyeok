@@ -104,13 +104,13 @@ class AccountServiceTest {
 		Long accountId = 1L;
 		Long chargeAmount = 100L;
 
-		when(accountJpaRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
+		when(accountJpaRepository.findByIdWithLock(accountId)).thenReturn(java.util.Optional.of(account));
 
 		// When
 		accountService.chargeBalance(accountId, chargeAmount);
 
 		// Then
-		verify(accountJpaRepository, times(1)).findById(accountId);
+		verify(accountJpaRepository, times(1)).findByIdWithLock(accountId);
 		verify(accountJpaRepository, times(1)).save(account);
 		assertThat(account.getBalance()).isEqualTo(600L);  // 충전 후 잔액 확인
 	}
@@ -122,7 +122,7 @@ class AccountServiceTest {
 		Long invalidAccountId = 999L;
 		Long chargeAmount = 100L;
 
-		when(accountJpaRepository.findById(invalidAccountId)).thenReturn(java.util.Optional.empty());
+		when(accountJpaRepository.findByIdWithLock(invalidAccountId)).thenReturn(java.util.Optional.empty());
 
 		// When & Then
 		NoSuchElementException noSuchElementException = assertThrows(NoSuchElementException.class, () -> {
@@ -130,7 +130,7 @@ class AccountServiceTest {
 		});
 
 		assertEquals(noSuchElementException.getMessage(), "해당 계좌를 찾을 수 없습니다. 계좌 ID: 999");
-		verify(accountJpaRepository, times(1)).findById(invalidAccountId);
+		verify(accountJpaRepository, times(1)).findByIdWithLock(invalidAccountId);
 		verify(accountJpaRepository, never()).save(any());
 	}
 
@@ -141,14 +141,14 @@ class AccountServiceTest {
 		Long accountId = 1L;
 		Long invalidChargeAmount = 0L;
 
-		when(accountJpaRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
+		when(accountJpaRepository.findByIdWithLock(accountId)).thenReturn(java.util.Optional.of(account));
 
 		// When & Then
 		assertThrows(IllegalArgumentException.class, () -> {
 			accountService.chargeBalance(accountId, invalidChargeAmount);
 		});
 
-		verify(accountJpaRepository, times(1)).findById(accountId);
+		verify(accountJpaRepository, times(1)).findByIdWithLock(accountId);
 		verify(accountJpaRepository, never()).save(any());
 	}
 }

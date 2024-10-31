@@ -59,7 +59,7 @@ public class SeatReservationConcurrencyTest {
 	@Test
 	@DisplayName("동시 좌석 예약 테스트 - 낙관적 락 적용")
 	public void testConcurrentSeatReservation() throws InterruptedException {
-		int threadCount = 100;
+		int threadCount = 1000;
 		ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
 		CountDownLatch latch = new CountDownLatch(threadCount);
 
@@ -87,8 +87,6 @@ public class SeatReservationConcurrencyTest {
 		assertEquals("RESERVED", updatedSeat.getStatus());
 
 		// 성공한 스레드는 1개여야 함
-		System.out.println("successCount = " + successCount.get());
-		System.out.println("failureCount = " + failureCount.get());
 		assertEquals(1, successCount.get(), "성공한 스레드는 1개여야 합니다.");
 		assertEquals(threadCount - 1, failureCount.get(), "실패한 스레드는 " + (threadCount - 1) + "개여야 합니다.");
 

@@ -18,6 +18,9 @@ public class Account {
 	@Column(name = "balance", nullable = false)
 	private Long balance;
 
+	@Version
+	private Long version;
+
 	public void chargeBalance(Long amount) {
 		if (amount.compareTo(0L) <= 0) {
 			throw new IllegalArgumentException("충전금액은 0보다 커야합니다.");

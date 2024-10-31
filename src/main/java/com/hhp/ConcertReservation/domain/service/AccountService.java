@@ -3,11 +3,13 @@ package com.hhp.ConcertReservation.domain.service;
 import com.hhp.ConcertReservation.domain.entity.Account;
 import com.hhp.ConcertReservation.infra.persistence.AccountJpaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountService {
@@ -40,23 +42,23 @@ public class AccountService {
 	@Transactional
 	public Account chargeBalance(Long accountId, Long amount) {
 		Account account = accountJpaRepository
-				                  .findByIdWithLock(accountId)
+				                  .findById(accountId)
 				                  .orElseThrow(() -> new NoSuchElementException("해당 계좌를 찾을 수 없습니다. 계좌 ID: " + accountId));
 
 		account.chargeBalance(amount);
-
-		return accountJpaRepository.saveAndFlush(account);
+		Account save = accountJpaRepository.save(account);
+		return save;
 	}
 
 	@Transactional
 	public Account useBalance(Long accountId, Long amount) {
 		Account account = accountJpaRepository
-				                  .findByIdWithLock(accountId)
+				                  .findById(accountId)
 				                  .orElseThrow(() -> new NoSuchElementException("해당 계좌를 찾을 수 없습니다. 계좌 ID: " + accountId));
 
 		account.useBalance(amount);
-
-		return accountJpaRepository.saveAndFlush(account);
+		Account save = accountJpaRepository.save(account);
+		return save;
 	}
 
 	public Account save(Account account) {

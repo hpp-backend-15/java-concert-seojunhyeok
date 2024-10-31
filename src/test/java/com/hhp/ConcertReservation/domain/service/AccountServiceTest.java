@@ -120,7 +120,7 @@ class AccountServiceTest {
 		Long accountId = 1L;
 		Long invalidChargeAmount = 0L;
 
-		when(accountJpaRepository.findByIdWithLock(accountId)).thenReturn(java.util.Optional.of(account));
+		when(accountJpaRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
 
 		// When & Then
 		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {

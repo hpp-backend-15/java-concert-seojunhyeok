@@ -55,10 +55,10 @@ public class AccountChargeConcurrencyTest {
 	}
 
 	@Test
-	@DisplayName("동시성 충전 작업이 제대로 처리되어 히스토리 기록과 잔액이 일치하는지 검증")
+	@DisplayName("동시 포인트 충전 테스트 - 비관적 락")
 	public void testConcurrentAccountChargingUsingFacade() throws InterruptedException {
 		//given
-		int threadCount = 30;
+		int threadCount = 1000;
 		long chargeAmount = 1000L;
 		ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
 		CountDownLatch latch = new CountDownLatch(threadCount);

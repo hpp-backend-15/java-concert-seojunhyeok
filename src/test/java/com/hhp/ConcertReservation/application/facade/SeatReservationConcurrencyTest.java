@@ -57,7 +57,7 @@ public class SeatReservationConcurrencyTest {
 	@Test
 	@DisplayName("동시 좌석 예약 테스트 - 비관적 락 적용")
 	public void testConcurrentSeatReservation() throws InterruptedException {
-		int threadCount = 100;
+		int threadCount = 1000;
 		ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
 		CountDownLatch latch = new CountDownLatch(threadCount);
 

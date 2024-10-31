@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.concurrent.CountDownLatch;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @RunWith(SpringRunner.class)
 @AutoConfigureEmbeddedDatabase
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @SpringBootTest
 public class SeatReservationConcurrencyTest {
 
@@ -55,7 +57,7 @@ public class SeatReservationConcurrencyTest {
 	}
 
 	@Test
-	@DisplayName("동시 좌석 예약 테스트 - 비관적 락 적용")
+	@DisplayName("동시 좌석 예약 테스트 - 낙관적 락 적용")
 	public void testConcurrentSeatReservation() throws InterruptedException {
 		int threadCount = 100;
 		ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
@@ -69,7 +71,8 @@ public class SeatReservationConcurrencyTest {
 				try {
 					reservationFacade.reserveSeat(member.getId(), seatId);
 					successCount.incrementAndGet();
-				} catch (Exception e) {
+				} catch (IllegalStateException e) {
+					System.out.println(e.getMessage());
 					failureCount.incrementAndGet();
 				} finally {
 					latch.countDown();
@@ -84,6 +87,8 @@ public class SeatReservationConcurrencyTest {
 		assertEquals("RESERVED", updatedSeat.getStatus());
 
 		// 성공한 스레드는 1개여야 함
+		System.out.println("successCount = " + successCount.get());
+		System.out.println("failureCount = " + failureCount.get());
 		assertEquals(1, successCount.get(), "성공한 스레드는 1개여야 합니다.");
 		assertEquals(threadCount - 1, failureCount.get(), "실패한 스레드는 " + (threadCount - 1) + "개여야 합니다.");
 

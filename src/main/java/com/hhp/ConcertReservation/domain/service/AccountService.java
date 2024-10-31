@@ -4,6 +4,7 @@ import com.hhp.ConcertReservation.domain.entity.Account;
 import com.hhp.ConcertReservation.infra.persistence.AccountJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
 
@@ -36,10 +37,26 @@ public class AccountService {
 				       .orElseThrow(() -> new NoSuchElementException("해당 멤버의 계좌를 찾을 수 없습니다. 멤버 ID: " + memberId));
 	}
 
-	public void chargeBalance(Long accountId, Long amount) {
-		Account account = findAccountByIdWithLock(accountId);
+	@Transactional
+	public Account chargeBalance(Long accountId, Long amount) {
+		Account account = accountJpaRepository
+				                  .findByIdWithLock(accountId)
+				                  .orElseThrow(() -> new NoSuchElementException("해당 계좌를 찾을 수 없습니다. 계좌 ID: " + accountId));
+
 		account.chargeBalance(amount);
-		accountJpaRepository.save(account);
+
+		return accountJpaRepository.saveAndFlush(account);
+	}
+
+	@Transactional
+	public Account useBalance(Long accountId, Long amount) {
+		Account account = accountJpaRepository
+				                  .findByIdWithLock(accountId)
+				                  .orElseThrow(() -> new NoSuchElementException("해당 계좌를 찾을 수 없습니다. 계좌 ID: " + accountId));
+
+		account.useBalance(amount);
+
+		return accountJpaRepository.saveAndFlush(account);
 	}
 
 	public Account save(Account account) {

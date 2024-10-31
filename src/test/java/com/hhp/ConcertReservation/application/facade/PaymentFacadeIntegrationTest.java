@@ -90,6 +90,7 @@ class PaymentFacadeIntegrationTest {
 
 	@Test
 	@DisplayName("성공적으로 예약 결제를 처리할 수 있다.")
+	@Transactional
 	void processReservationPayment_success() {
 		//when
 		PaymentApplicationDto.processReservationPaymentResponse response = paymentFacade.processReservationPayment(reservation.getId());
@@ -108,6 +109,7 @@ class PaymentFacadeIntegrationTest {
 
 	@Test
 	@DisplayName("존재하지 않는 예약 ID로 결제를 시도하면 예외가 발생한다.")
+	@Transactional
 	void processReservationPayment_reservationNotFound() {
 		//given
 		Long invalidReservationId = Long.MAX_VALUE;
@@ -120,6 +122,7 @@ class PaymentFacadeIntegrationTest {
 
 	@Test
 	@DisplayName("잔액이 부족한 경우 결제를 시도하면 예외가 발생한다.")
+	@Transactional
 	void processReservationPayment_insufficientBalance() {
 		account.setBalance(50L);  // 잔액 부족 설정
 		accountService.save(account);  // 잔액 업데이트
@@ -132,6 +135,7 @@ class PaymentFacadeIntegrationTest {
 
 	@Test
 	@DisplayName("이미 결제 되었거나 취소 된 예약 ID로 결제를 시도하면 예외가 발생한다.")
+	@Transactional
 	void processReservationPayment_invalidReservationId() {
 
 		assertThrows(IllegalStateException.class, () -> paymentFacade.processReservationPayment(canceledReservation.getId()));

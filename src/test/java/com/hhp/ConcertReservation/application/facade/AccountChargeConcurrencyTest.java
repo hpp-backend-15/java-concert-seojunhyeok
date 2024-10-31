@@ -4,6 +4,7 @@ import com.hhp.ConcertReservation.domain.entity.Account;
 import com.hhp.ConcertReservation.infra.persistence.AccountHistoryJpaRepository;
 import com.hhp.ConcertReservation.infra.persistence.AccountJpaRepository;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,12 @@ public class AccountChargeConcurrencyTest {
 		account.setMemberId(memberId);
 		account.setBalance(0L);
 		account = accountRepository.save(account);
+	}
+
+	@AfterEach
+	public void tearDown() {
+		accountRepository.deleteAll();
+		accountHistoryRepository.deleteAll();
 	}
 
 	@Test

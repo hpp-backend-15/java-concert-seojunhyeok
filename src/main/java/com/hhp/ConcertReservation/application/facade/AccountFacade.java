@@ -17,10 +17,8 @@ public class AccountFacade {
 	final AccountHistoryService accountHistoryService;
 
 	@Transactional
-	public AccountApplicationDto.chargeBalanceResponse chargeBalance(Long memberId, Long amount) {
-		Account account = accountService.findAccountByMemberIdWithLock(memberId);
-
-		account.chargeBalance(amount);
+	public AccountApplicationDto.chargeBalanceResponse chargeBalance(Long accountId, Long amount) {
+		Account account = accountService.chargeBalance(accountId, amount);
 
 		AccountHistory history = accountHistoryService.createHistory(account.getId(), amount, AccountHistoryType.CHARGE);
 

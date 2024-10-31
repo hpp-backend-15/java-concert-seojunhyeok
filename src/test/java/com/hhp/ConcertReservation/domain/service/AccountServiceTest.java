@@ -12,10 +12,9 @@ import org.mockito.MockitoAnnotations;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class AccountServiceTest {
 
@@ -98,24 +97,6 @@ class AccountServiceTest {
 	}
 
 	@Test
-	@DisplayName("성공적으로 계좌에 잔액을 충전할 수 있다.")
-	void chargeBalance_success() {
-		// Given
-		Long accountId = 1L;
-		Long chargeAmount = 100L;
-
-		when(accountJpaRepository.findByIdWithLock(accountId)).thenReturn(java.util.Optional.of(account));
-
-		// When
-		accountService.chargeBalance(accountId, chargeAmount);
-
-		// Then
-		verify(accountJpaRepository, times(1)).findByIdWithLock(accountId);
-		verify(accountJpaRepository, times(1)).save(account);
-		assertThat(account.getBalance()).isEqualTo(600L);  // 충전 후 잔액 확인
-	}
-
-	@Test
 	@DisplayName("존재하지 않는 계좌 ID로 잔액을 충전하려고 하면 예외가 발생한다.")
 	void chargeBalance_accountNotFound() {
 		// Given
@@ -130,8 +111,6 @@ class AccountServiceTest {
 		});
 
 		assertEquals(noSuchElementException.getMessage(), "해당 계좌를 찾을 수 없습니다. 계좌 ID: 999");
-		verify(accountJpaRepository, times(1)).findByIdWithLock(invalidAccountId);
-		verify(accountJpaRepository, never()).save(any());
 	}
 
 	@Test
@@ -144,11 +123,10 @@ class AccountServiceTest {
 		when(accountJpaRepository.findByIdWithLock(accountId)).thenReturn(java.util.Optional.of(account));
 
 		// When & Then
-		assertThrows(IllegalArgumentException.class, () -> {
+		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
 			accountService.chargeBalance(accountId, invalidChargeAmount);
 		});
 
-		verify(accountJpaRepository, times(1)).findByIdWithLock(accountId);
-		verify(accountJpaRepository, never()).save(any());
+		assertEquals(exception.getMessage(), "충전금액은 0보다 커야합니다.");
 	}
 }

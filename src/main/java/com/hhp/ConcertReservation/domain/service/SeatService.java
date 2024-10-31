@@ -5,6 +5,7 @@ import com.hhp.ConcertReservation.domain.entity.Seat;
 import com.hhp.ConcertReservation.infra.persistence.SeatJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -30,5 +31,15 @@ public class SeatService {
 
 	public List<Seat> findAvailableSeats(Long concertScheduleId) {
 		return seatJpaRepository.findByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.AVAILABLE.name());
+	}
+
+	@Transactional
+	public Seat reserveSeat(Long seatId) {
+		Seat seat = seatJpaRepository
+				            .findByIdWithLock(seatId)
+				            .orElseThrow(() -> new NoSuchElementException("좌석 정보를 찾을 수 없습니다."));
+		seat.validateSeatAvailability();
+		seat.setStatus(SeatStatus.RESERVED.name());
+		return seatJpaRepository.saveAndFlush(seat);
 	}
 }

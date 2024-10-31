@@ -1,7 +1,6 @@
 package com.hhp.ConcertReservation.application.facade;
 
 import com.hhp.ConcertReservation.application.dto.ReservationApplicationDto;
-import com.hhp.ConcertReservation.common.enums.SeatStatus;
 import com.hhp.ConcertReservation.domain.entity.Member;
 import com.hhp.ConcertReservation.domain.entity.Reservation;
 import com.hhp.ConcertReservation.domain.entity.Seat;
@@ -23,15 +22,9 @@ public class ReservationFacade {
 	public ReservationApplicationDto.reserveSeatResponse reserveSeat(Long memberId, Long seatId) {
 		Member member = memberService.findMemberById(memberId);
 
-		Seat seat = seatService.findSeatByIdWithLock(seatId);
-
-		seat.validateSeatAvailability();
-
-		seat.setStatus(SeatStatus.RESERVED.name());
+		Seat seat = seatService.reserveSeat(seatId);
 
 		Reservation reservation = reservationService.createReservation(member, seat);
-
-		seatService.save(seat);
 
 		return new ReservationApplicationDto.reserveSeatResponse(member, seat, reservation);
 	}

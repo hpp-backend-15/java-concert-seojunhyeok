@@ -34,6 +34,10 @@ dependencies {
 
     // Test Container
     testImplementation("io.zonky.test:embedded-database-spring-test:2.5.1")
+
+    // retryable
+    implementation("org.springframework.retry:spring-retry")
+
 }
 
 tasks.withType<Test> {

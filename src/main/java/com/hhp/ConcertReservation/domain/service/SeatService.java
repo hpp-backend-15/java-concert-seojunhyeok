@@ -40,6 +40,6 @@ public class SeatService {
 				            .orElseThrow(() -> new NoSuchElementException("좌석 정보를 찾을 수 없습니다."));
 		seat.validateSeatAvailability();
 		seat.setStatus(SeatStatus.RESERVED.name());
-		return seatJpaRepository.saveAndFlush(seat);
+		return seatJpaRepository.save(seat);
 	}
 }

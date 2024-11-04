@@ -25,6 +25,9 @@ public class Seat {
 	@Column(name = "price", nullable = false)
 	private Long price;
 
+	@Version
+	private Long version;
+
 	/**
 	 * 좌석의 상태를 확인하여 예약 가능한지 검증하는 메서드
 	 * @throws IllegalStateException 좌석이 이미 예약되었거나 결제된 경우

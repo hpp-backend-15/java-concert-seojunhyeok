@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.concurrent.CountDownLatch;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @RunWith(SpringRunner.class)
 @AutoConfigureEmbeddedDatabase
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @SpringBootTest
 public class SeatReservationConcurrencyTest {
 
@@ -55,9 +57,9 @@ public class SeatReservationConcurrencyTest {
 	}
 
 	@Test
-	@DisplayName("동시 좌석 예약 테스트 - 비관적 락 적용")
+	@DisplayName("동시 좌석 예약 테스트 - 낙관적 락 적용")
 	public void testConcurrentSeatReservation() throws InterruptedException {
-		int threadCount = 100;
+		int threadCount = 1000;
 		ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
 		CountDownLatch latch = new CountDownLatch(threadCount);
 
@@ -69,7 +71,8 @@ public class SeatReservationConcurrencyTest {
 				try {
 					reservationFacade.reserveSeat(member.getId(), seatId);
 					successCount.incrementAndGet();
-				} catch (Exception e) {
+				} catch (IllegalStateException e) {
+					System.out.println(e.getMessage());
 					failureCount.incrementAndGet();
 				} finally {
 					latch.countDown();

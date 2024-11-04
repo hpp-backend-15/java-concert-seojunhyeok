@@ -8,9 +8,17 @@ import com.hhp.ConcertReservation.domain.service.MemberService;
 import com.hhp.ConcertReservation.domain.service.ReservationService;
 import com.hhp.ConcertReservation.domain.service.SeatService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.NoSuchElementException;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReservationFacade {
@@ -19,6 +27,11 @@ public class ReservationFacade {
 	final ReservationService reservationService;
 
 	@Transactional
+	@Retryable(
+			retryFor = ObjectOptimisticLockingFailureException.class,
+			noRetryFor = {IllegalStateException.class, NoSuchElementException.class, IllegalArgumentException.class},
+			backoff = @Backoff(delay = 1000),
+			notRecoverable = {IllegalStateException.class, NoSuchElementException.class, IllegalArgumentException.class})
 	public ReservationApplicationDto.reserveSeatResponse reserveSeat(Long memberId, Long seatId) {
 		Member member = memberService.findMemberById(memberId);
 
@@ -28,4 +41,10 @@ public class ReservationFacade {
 
 		return new ReservationApplicationDto.reserveSeatResponse(member, seat, reservation);
 	}
+
+	@Recover
+	public ReservationApplicationDto.reserveSeatResponse recoverReserveSeat(ObjectOptimisticLockingFailureException e, Long memberId, Long seatId) {
+		throw new IllegalStateException("재시도 횟수를 초과하여 좌석 예약에 실패했습니다." + memberId + seatId);
+	}
+
 }

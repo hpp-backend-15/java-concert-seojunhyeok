@@ -38,6 +38,12 @@ dependencies {
     // retryable
     implementation("org.springframework.retry:spring-retry")
 
+    //redis
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+    // Test Container dependencies for Redis
+    testImplementation("org.testcontainers:testcontainers:1.19.0")
+    testImplementation("org.testcontainers:junit-jupiter:1.19.0")
 }
 
 tasks.withType<Test> {

@@ -41,7 +41,7 @@ public class ConcertReservationController implements com.hhp.ConcertReservation.
 	@PostMapping("/queue")
 	public ResponseEntity<ResponseDto.QueueResponse> addToQueue(RequestDto.PostQueue requestDto) {
 		QueueApplicationDto.getQueuePositionResponse result = queueFacade.addToQueueAndGetQueuePosition(requestDto.memberId());
-		ResponseDto.QueueResponse response = new ResponseDto.QueueResponse(result.queue().getToken(), result.queue().getStatus(), result.queuePosition());
+		ResponseDto.QueueResponse response = new ResponseDto.QueueResponse(result.token(), result.queuePosition());
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -50,7 +50,7 @@ public class ConcertReservationController implements com.hhp.ConcertReservation.
 	@GetMapping("/queue")
 	public ResponseEntity<ResponseDto.QueueResponse> getQueuePosition(@RequestHeader String token) {
 		QueueApplicationDto.getQueuePositionResponse result = queueFacade.getQueuePosition(token);
-		ResponseDto.QueueResponse response = new ResponseDto.QueueResponse(result.queue().getToken(), result.queue().getStatus(), result.queuePosition());
+		ResponseDto.QueueResponse response = new ResponseDto.QueueResponse(result.token(), result.queuePosition());
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}

@@ -48,19 +48,15 @@ public class PaymentFacade {
 		//좌석 상태 변경
 		seat.setStatus(SeatStatus.PAID.name());
 
-		//토큰 조회
-		Queue queue = queueService.findQueueByMemberId(reservation.getMemberId());
-
 		//토큰 만료
-		queue.expireToken();
+		queueService.expireActiveTokenByMemberId(reservation.getMemberId());
 
 		//변경사항 저장
 		Reservation updatedReservation = reservationService.save(reservation);
 		Seat updatedSeat = seatService.save(seat);
 		Account updatedAccount = accountService.save(account);
-		Queue updatedQueue = queueService.save(queue);
 
 		//반환
-		return new PaymentApplicationDto.processReservationPaymentResponse(updatedReservation, updatedSeat, updatedAccount, history, updatedQueue);
+		return new PaymentApplicationDto.processReservationPaymentResponse(updatedReservation, updatedSeat, updatedAccount, history);
 	}
 }

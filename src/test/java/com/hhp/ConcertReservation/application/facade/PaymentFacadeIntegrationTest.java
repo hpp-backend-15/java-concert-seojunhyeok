@@ -1,19 +1,20 @@
 package com.hhp.ConcertReservation.application.facade;
 
 import com.hhp.ConcertReservation.application.dto.PaymentApplicationDto;
-import com.hhp.ConcertReservation.common.enums.QueueStatus;
 import com.hhp.ConcertReservation.common.enums.ReservationStatus;
 import com.hhp.ConcertReservation.common.enums.SeatStatus;
-import com.hhp.ConcertReservation.domain.entity.*;
+import com.hhp.ConcertReservation.domain.entity.Account;
+import com.hhp.ConcertReservation.domain.entity.Reservation;
+import com.hhp.ConcertReservation.domain.entity.Seat;
 import com.hhp.ConcertReservation.domain.service.*;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -22,12 +23,11 @@ import java.util.NoSuchElementException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @AutoConfigureEmbeddedDatabase
 @SpringBootTest
 @Transactional
 class PaymentFacadeIntegrationTest {
-
 	@Autowired
 	private PaymentFacade paymentFacade;
 
@@ -50,8 +50,6 @@ class PaymentFacadeIntegrationTest {
 	Reservation canceledReservation;
 	Seat seat;
 	Account account;
-	Queue queue;
-	Member member;
 
 	@BeforeEach
 	void setUp() {
@@ -80,31 +78,28 @@ class PaymentFacadeIntegrationTest {
 		account.setMemberId(1L);
 		account.setBalance(500L);
 		account = accountService.save(account);
-
-		queue = new Queue();
-		queue.setMemberId(1L);
-		queue.setToken("testToken");
-		queue.setStatus(QueueStatus.WAITING.name());
-		queue = queueService.addToQueue(queue.getToken(), queue.getMemberId());
 	}
 
 	@Test
 	@DisplayName("성공적으로 예약 결제를 처리할 수 있다.")
 	@Transactional
 	void processReservationPayment_success() {
-		//when
+		String token = queueService.generateToken();
+		queueService.addToQueue(token, 1L);
+		queueService.passQueueEntries(1);
 		PaymentApplicationDto.processReservationPaymentResponse response = paymentFacade.processReservationPayment(reservation.getId());
 
 		assertThat(response).isNotNull();
 		assertThat(response.reservation().getStatus()).isEqualTo("PAID");
 		assertThat(response.seat().getStatus()).isEqualTo("PAID");
 		assertThat(response.account().getBalance()).isEqualTo(400L);
-		assertThat(response.queue().getStatus()).isEqualTo("EXPIRED");
 
 		var histories = accountHistoryService.findAllByAccountId(account.getId());
 		assertThat(histories).hasSize(1);
 		assertThat(histories.get(0).getType()).isEqualTo("USE");
 		assertThat(histories.get(0).getAmount()).isEqualTo(100L);
+
+		assertThrows(IllegalStateException.class, () -> queueService.isValidToken(token));
 	}
 
 	@Test

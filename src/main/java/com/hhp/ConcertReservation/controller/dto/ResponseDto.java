@@ -6,7 +6,7 @@ import com.hhp.ConcertReservation.domain.entity.Seat;
 import java.util.List;
 
 public class ResponseDto {
-	public record QueueResponse(String token, String status, Long queuePosition) {}
+	public record QueueResponse(String token, Long queuePosition) {}
 
 	public record ReserveSeat(Long reservationId) {}
 

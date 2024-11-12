@@ -7,7 +7,6 @@ public class PaymentApplicationDto {
 			Reservation reservation,
 			Seat seat,
 			Account account,
-			AccountHistory history,
-			Queue queue
+			AccountHistory history
 	) {}
 }

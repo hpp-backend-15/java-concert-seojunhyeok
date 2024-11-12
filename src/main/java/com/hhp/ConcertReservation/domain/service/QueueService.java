@@ -1,93 +1,92 @@
+// QueueService.java
 package com.hhp.ConcertReservation.domain.service;
 
-import com.hhp.ConcertReservation.common.enums.QueueStatus;
-import com.hhp.ConcertReservation.domain.entity.Queue;
-import com.hhp.ConcertReservation.infra.persistence.QueueJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.Duration;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class QueueService {
-	private final QueueJpaRepository queueJpaRepository;
+	private final RedisTemplate<String, String> redisTemplate;
+	public static final String WAITING_TOKENS_KEY = "waiting_tokens";
+	public static final String ACTIVE_TOKENS_KEY = "active_tokens";
+	public static final int QUEUE_TOKEN_EXPIRY_TIME = 5;
 
 	public String generateToken() {
 		return UUID.randomUUID().toString();
 	}
 
-	public Queue findQueueByToken(String token) {
-		return queueJpaRepository
-				       .findByToken(token)
-				       .orElseThrow(() -> new NoSuchElementException("토큰을 찾을 수 없습니다."));
-	}
-
-	public Queue findQueueByMemberId(Long memberId) {
-		return queueJpaRepository
-				       .findByMemberId(memberId)
-				       .orElseThrow(() -> new NoSuchElementException("토큰을 찾을 수 없습니다."));
-	}
-
-	public Queue addToQueue(String token, Long memberId) {
-		Queue queueEntry = new Queue();
-		queueEntry.setToken(token);
-		queueEntry.setMemberId(memberId);
-		queueEntry.setStatus(QueueStatus.WAITING.name());
-
-		return queueJpaRepository.save(queueEntry);
+	public void addToQueue(String token, Long memberId) {
+		ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+		zSetOperations.add(WAITING_TOKENS_KEY, token, System.currentTimeMillis());
+		redisTemplate.opsForHash().put(token, "memberId", memberId.toString());
 	}
 
 	public Long getQueuePosition(String token) {
-		return queueJpaRepository.findPositionInWaitingQueue(token)
-				       .orElse(0L);
-	}
+		ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+		Long rank = zSetOperations.rank(WAITING_TOKENS_KEY, token);
 
-	public int getNewQueueEntriesCount() {
-		long passedCount = queueJpaRepository
-				                   .countByStatus(QueueStatus.ENTERED.name())
-				                   .orElse(0L);
-		return Queue.MAX_ALLOWED_QUEUE_PASS - (int) passedCount;
-	}
-
-	public void expireOverdueQueues(LocalDateTime dateTime) {
-		List<Queue> expireOverdueQueues = queueJpaRepository.findExpireOverdueQueues(dateTime);
-
-		for (Queue queue : expireOverdueQueues) {
-			queue.setStatus(QueueStatus.EXPIRED.name());
-			queueJpaRepository.save(queue);
+		if (rank == null) {
+			throw new NoSuchElementException("토큰을 찾을 수 없습니다.");
 		}
+
+		return rank;
+	}
+
+	public void activateToken(String token) {
+		System.out.println("Activating token: " + token);
+		redisTemplate.opsForSet().add(ACTIVE_TOKENS_KEY, token);
+		redisTemplate.expire(token, Duration.ofMinutes(QUEUE_TOKEN_EXPIRY_TIME));
+	}
+
+	public boolean isValidToken(String token) {
+		Boolean exists = redisTemplate.opsForSet().isMember(ACTIVE_TOKENS_KEY, token);
+		if (exists == null || !exists) {
+			throw new IllegalStateException("토큰이 유효하지 않습니다.");
+		}
+		return true;
+	}
+
+	public void expireOverdueTokens() {
+		Objects.requireNonNull(redisTemplate.opsForSet().members(ACTIVE_TOKENS_KEY)).forEach(token -> {
+			if (Boolean.FALSE.equals(redisTemplate.hasKey(token))) {
+				redisTemplate.opsForSet().remove(ACTIVE_TOKENS_KEY, token);
+			}
+		});
 	}
 
 	public void passQueueEntries(int numberToPass) {
-		Pageable pageable = PageRequest.of(0, numberToPass);
-		List<Queue> waitingEntries = queueJpaRepository.findTopByStatusOrderByIdAsc(QueueStatus.WAITING.name(), pageable);
+		ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
 
-		for (Queue entry : waitingEntries) {
-			entry.setStatus(QueueStatus.ENTERED.name());
-			entry.setExpiryAt(LocalDateTime.now().plusMinutes(Queue.QUEUE_TOKEN_EXPIRY_TIME));
-			queueJpaRepository.save(entry);
+		var tokensToPass = zSetOperations.range(WAITING_TOKENS_KEY, 0, numberToPass - 1);
+		if (tokensToPass != null) {
+			tokensToPass.forEach(this::activateToken);
+			tokensToPass.forEach(token -> zSetOperations.remove(WAITING_TOKENS_KEY, token));
+			System.out.println("Tokens passed: " + tokensToPass);
 		}
 	}
 
-	public Queue save(Queue queue) {
-		return queueJpaRepository.save(queue);
-	}
-
-	public Boolean isValidToken(String token) {
-		Queue queue = queueJpaRepository
-				              .findByToken(token)
-				              .orElseThrow(() -> new NoSuchElementException("토큰을 찾을 수 없습니다."));
-
-		if (queue.getStatus().equals(QueueStatus.WAITING.name()) || queue.getStatus().equals(QueueStatus.EXPIRED.name())) {
-			throw new IllegalStateException("토큰이 유효하지 않습니다.");
+	public void expireActiveTokenByMemberId(Long memberId) {
+		Set<String> activeTokens = redisTemplate.opsForSet().members(ACTIVE_TOKENS_KEY);
+		if (activeTokens != null) {
+			for (String token : activeTokens) {
+				String storedMemberId = (String) redisTemplate.opsForHash().get(token, "memberId");
+				if (storedMemberId != null && storedMemberId.equals(memberId.toString())) {
+					redisTemplate.opsForSet().remove(ACTIVE_TOKENS_KEY, token);
+					redisTemplate.opsForHash().delete(token, "memberId");
+					break;
+				}
+			}
 		}
-
-		return true;
 	}
+
+
 }

@@ -1,156 +1,124 @@
 package com.hhp.ConcertReservation.domain.service;
 
-import com.hhp.ConcertReservation.common.enums.QueueStatus;
-import com.hhp.ConcertReservation.domain.entity.Queue;
-import com.hhp.ConcertReservation.infra.persistence.QueueJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.time.Duration;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
-class QueueServiceTest {
-	@Mock
-	private QueueJpaRepository queueJpaRepository;
+@SpringBootTest
+public class QueueServiceTest {
 
-	@InjectMocks
+	@Autowired
 	private QueueService queueService;
 
+	@Autowired
+	private RedisTemplate<String, String> redisTemplate;
+
 	@BeforeEach
-	void setUp() {
-		MockitoAnnotations.openMocks(this);
+	void setup() {
+		// Redis 데이터 초기화
+		redisTemplate.getConnectionFactory().getConnection().flushAll();
 	}
 
 	@Test
-	@DisplayName("유효한 토큰이 있을 때 올바른 대기열 순번을 반환해야 한다")
-	void getQueuePosition_ShouldReturnPosition_WhenTokenExists() {
-		//given
-		String token = "valid-token";
-		Long expectedPosition = 5L;
+	public void testAddToQueueAndRetrievePosition() {
+		Long memberId = 123L;
+		String token = queueService.generateToken();
+		queueService.addToQueue(token, memberId);
 
-		when(queueJpaRepository.findPositionInWaitingQueue(token))
-				.thenReturn(Optional.of(expectedPosition));
+		Long position = queueService.getQueuePosition(token);
+		assertThat(position).isEqualTo(0L); // 첫 번째 추가된 항목은 0번 위치
 
-		//when
-		Long actualPosition = queueService.getQueuePosition(token);
-
-		//then
-		assertEquals(expectedPosition, actualPosition);
-	}
-
-
-	@Test
-	@DisplayName("토큰이 대기열에 없을 때 0을 반환해야 한다")
-	void getQueuePosition_ShouldReturnZero_WhenTokenDoesNotExist() {
-		// given
-		String token = "non-existent-token";
-		Long expectedPosition = 0L;
-
-		when(queueJpaRepository.findPositionInWaitingQueue(token))
-				.thenReturn(Optional.empty());
-
-		// when
-		Long actualPosition = queueService.getQueuePosition(token);
-
-		// then
-		assertEquals(expectedPosition, actualPosition);
+		// 추가 항목을 추가한 뒤 위치 확인
+		String anotherToken = queueService.generateToken();
+		queueService.addToQueue(anotherToken, 456L);
+		assertThat(queueService.getQueuePosition(anotherToken)).isEqualTo(1L); // 두 번째 항목은 1번 위치
 	}
 
 	@Test
-	@DisplayName("유효한 토큰이 있을 때 올바른 대기열 상태를 반환해야 한다")
-	void getQueueStatus_ShouldReturnStatus_WhenTokenExists() {
-		// given
-		String token = "valid-token";
-		Queue queue = new Queue();
-		queue.setToken(token);
-		queue.setStatus(QueueStatus.WAITING.name());
+	public void testActivateTokenAndIsValidToken() {
+		Long memberId = 123L;
+		String token = queueService.generateToken();
+		queueService.addToQueue(token, memberId);
+		queueService.activateToken(token);
 
-		when(queueJpaRepository.findByToken(token))
-				.thenReturn(Optional.of(queue));
-
-		// when
-		Queue actualQueue = queueService.findQueueByToken(token);
-
-		// then
-		assertEquals(QueueStatus.WAITING.name(), actualQueue.getStatus());
+		// Active Tokens에서 유효성 확인
+		assertThat(queueService.isValidToken(token)).isTrue();
 	}
 
 	@Test
-	@DisplayName("토큰이 대기열에 없을 때 NoSuchElementException을 던져야 한다")
-	void getQueueStatus_ShouldThrowException_WhenTokenDoesNotExist() {
-		// given
-		String token = "invalid-token";
-
-		when(queueJpaRepository.findByToken(token))
-				.thenReturn(Optional.empty());
-
-		// when & then
-		NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> {
-			queueService.findQueueByToken(token);
-		});
-
-		assertEquals("토큰을 찾을 수 없습니다.", exception.getMessage());
+	public void testIsValidTokenThrowsExceptionForInvalidToken() {
+		String invalidToken = UUID.randomUUID().toString();
+		assertThrows(IllegalStateException.class, () -> queueService.isValidToken(invalidToken));
 	}
 
 	@Test
-	@DisplayName("토큰 유효성 검사 중 토큰이 조회되지 않으면 NoSuchElementException이 발생한다")
-	void getQueueStatus_ShouldThrowException_WhenTokenExists() {
-		//given
-		String token = "valid-token";
+	public void testExpireOverdueTokensWithShortTTL() throws InterruptedException {
+		Long memberId = 123L;
+		String token = queueService.generateToken();
+		queueService.addToQueue(token, memberId);
+		queueService.activateToken(token);
 
-		//when
-		when(queueJpaRepository.findByToken(token))
-				.thenReturn(Optional.empty());
+		// TTL을 1초로 강제 설정
+		redisTemplate.expire(token, Duration.ofSeconds(1));
 
-		//then
-		NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> {
-			queueService.isValidToken(token);
-		});
+		// 짧은 대기 시간 후 만료 처리
+		Thread.sleep(1500); // 1.5초 대기 (TTL 이후 확인)
 
-		assertEquals(exception.getMessage(), "토큰을 찾을 수 없습니다.");
+		queueService.expireOverdueTokens();
+
+		// 만료된 토큰 확인 (존재하지 않아야 함)
+		assertThrows(IllegalStateException.class, () -> queueService.isValidToken(token));
 	}
 
 	@Test
-	@DisplayName("토큰 유효성 검사 중 토큰 상태가 ENTERD가 아니면 IllegalStateException이 발생한다.")
-	void shouldReturnFalseWhenTokenStatusIsNotENTERED(){
-		//given
-		String token = "invalid-token";
-		Queue queue = new Queue();
-		queue.setId(1L);
-		queue.setStatus(QueueStatus.EXPIRED.name());
+	public void testPassQueueEntries() {
+		Long memberId1 = 1L;
+		Long memberId2 = 2L;
 
-		//when
-		when(queueJpaRepository.findByToken(token)).thenReturn(Optional.of(queue));
+		String token1 = queueService.generateToken();
+		String token2 = queueService.generateToken();
 
-		IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-			queueService.isValidToken(token);
-		});
+		queueService.addToQueue(token1, memberId1);
+		queueService.addToQueue(token2, memberId2);
 
-		assertEquals(exception.getMessage(), "토큰이 유효하지 않습니다.");
+		queueService.passQueueEntries(2);
+
+		// 활성화된 항목 확인
+		assertThat(queueService.isValidToken(token1)).isTrue();
+		assertThat(queueService.isValidToken(token2)).isTrue();
 	}
 
 	@Test
-	@DisplayName("토큰 유효성 검사 중 토큰이 유효할 때 true가 반환된다.")
-	void shouldReturnTrueWhenTokenIsValid() {
-		//given
-		String token = "valid-token";
-		Queue queue = new Queue();
-		queue.setId(1L);
-		queue.setStatus(QueueStatus.ENTERED.name());
+	@DisplayName("expireActiveTokenByMemberId 메서드는 활성화된 토큰을 만료시킨다.")
+	void testExpireActiveTokenByMemberId() {
+		Long memberId = 1L;
+		String token = queueService.generateToken();
+		queueService.addToQueue(token, memberId);
+		queueService.passQueueEntries(1); // 토큰을 활성 상태로 전환
 
-		//when
-		when(queueJpaRepository.findByToken(token)).thenReturn(Optional.of(queue));
+		// Pre-condition: token이 ACTIVE_TOKENS_KEY에 존재하는지 확인
+		boolean isTokenActive = Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(QueueService.ACTIVE_TOKENS_KEY, token));
+		assertThat(isTokenActive).isTrue();
 
-		Boolean validationResult = queueService.isValidToken(token);
+		// 메서드 호출
+		queueService.expireActiveTokenByMemberId(memberId);
 
-		assertEquals(true, validationResult);
+		// Post-condition: token이 ACTIVE_TOKENS_KEY에서 제거되었는지 확인
+		isTokenActive = Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(QueueService.ACTIVE_TOKENS_KEY, token));
+		assertThat(isTokenActive).isFalse();
+
+		// 해시 데이터가 삭제되었는지 확인
+		String storedMemberId = (String) redisTemplate.opsForHash().get(token, "memberId");
+		assertThat(storedMemberId).isNull();
 	}
+
 }

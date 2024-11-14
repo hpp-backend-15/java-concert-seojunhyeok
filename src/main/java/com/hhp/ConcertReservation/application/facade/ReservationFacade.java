@@ -4,6 +4,8 @@ import com.hhp.ConcertReservation.application.dto.ReservationApplicationDto;
 import com.hhp.ConcertReservation.domain.entity.Member;
 import com.hhp.ConcertReservation.domain.entity.Reservation;
 import com.hhp.ConcertReservation.domain.entity.Seat;
+import com.hhp.ConcertReservation.domain.event.ReservationEventPublisher;
+import com.hhp.ConcertReservation.domain.event.ReservationSuccessEvent;
 import com.hhp.ConcertReservation.domain.service.MemberService;
 import com.hhp.ConcertReservation.domain.service.ReservationService;
 import com.hhp.ConcertReservation.domain.service.SeatService;
@@ -25,6 +27,7 @@ public class ReservationFacade {
 	final MemberService memberService;
 	final SeatService seatService;
 	final ReservationService reservationService;
+	final ReservationEventPublisher reservationEventPublisher;
 
 	@Transactional
 	@Retryable(
@@ -38,6 +41,9 @@ public class ReservationFacade {
 		Seat seat = seatService.reserveSeat(seatId);
 
 		Reservation reservation = reservationService.createReservation(member, seat);
+
+		// 관심사 분리 된 외부 로직 추가
+		reservationEventPublisher.success(new ReservationSuccessEvent(reservation.getId().toString(), member.getId().toString()));
 
 		return new ReservationApplicationDto.reserveSeatResponse(member, seat, reservation);
 	}

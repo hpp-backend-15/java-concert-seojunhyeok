@@ -4,6 +4,7 @@ import com.hhp.ConcertReservation.application.dto.ReservationApplicationDto;
 import com.hhp.ConcertReservation.common.enums.SeatStatus;
 import com.hhp.ConcertReservation.domain.entity.Member;
 import com.hhp.ConcertReservation.domain.entity.Seat;
+import com.hhp.ConcertReservation.domain.event.ReservationEventListener;
 import com.hhp.ConcertReservation.domain.service.MemberService;
 import com.hhp.ConcertReservation.domain.service.SeatService;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
@@ -35,6 +36,9 @@ class ReservationFacadeIntegrationTest {
 
 	@Autowired
 	private SeatService seatService;
+
+	@Autowired
+	private ReservationEventListener reservationEventListener;
 
 	private Member member;
 	private Seat availableSeat;
@@ -73,6 +77,8 @@ class ReservationFacadeIntegrationTest {
 		assertThat(response.member()).isEqualTo(savedMember);
 		assertThat(response.seat().getId()).isEqualTo(savedAvailableSeat.getId());
 		assertThat(response.seat().getStatus()).isEqualTo(SeatStatus.RESERVED.name());
+		System.out.println(reservationEventListener.isEventReceived());
+		assertThat(reservationEventListener.isEventReceived()).isTrue();
 	}
 
 	@Test
